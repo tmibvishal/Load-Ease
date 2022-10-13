@@ -1,5 +1,8 @@
 # LoadBalancing
 
+# TODO for all
+- Read paper of sandpiper
+
 # Notes
 ## CPU Monitoring
 ### Host  (Ramneek + Tushar + Sahil)
