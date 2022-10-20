@@ -19,6 +19,7 @@ def get_vm_infos() -> Dict[str, str]:
             # Get process name & pid from process object.
             processName = proc.name()
             processID = proc.pid
+            print(type(proc.pid))
             # print(processName , ' ::: ', processID)
             if 'vmm-reference' in processName:
                 vm_info = proc.as_dict(attrs=['pid', 'name', 'cpu_percent', 'memory_percent'])
