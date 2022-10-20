@@ -1,43 +1,84 @@
+from turtle import update
 from typing import List, Any, Tuple, Dict, int
 import config
+from threading import Thread
+import time
 
 class Monitor:
     def __init__(self, vm_ids=[]) -> None:
         # Histogram[i] = percentage number of times usage was in [i, i + 5)
-        self.host_histogram : dict[int : float] = {i : 0 for i in range(0, 100, 5)}
+        self.vm_ids = vm_ids
+        self.host_histogram : dict[int, float] = {i : 0 for i in range(0, 100, 5)}
         self.host_timeseries = [0] * config.TIME_SERIES_LEN
 
-        self.vm_histograms = { vm_id : {i : 0 for i in range(0, 5, 100)} for vm_id in vm_ids }
+        self.vm_histograms = { vm_id : {i : 0 for i in range(0, 100, 5)} for vm_id in vm_ids }
         self.vm_timeseries = { vm_id : [0] * config.TIME_SERIES_LEN for vm_id in vm_ids } 
- 
 
-    def get_host_stats() -> Tuple(List[Any], Dict[int : int]):
+        self.total_intervals = 0
+
+
+    def start(self) -> None:
+        th = Thread(target=update, args=(self))
+        th.start()
+
+    
+    # Inheriting classes implement
+    # return (host_usage %, and Dict[vmid : vm usage %])
+    def collect_stats(self) -> Tuple(float, Dict[str, float]):
         pass
 
-    def get_vm_stats(vm_id) -> Tuple(List[Any], Dict[int : int]):
+
+    # Inheriting classes implement
+    # Implement in base class, add a new vm for monitoring
+    def register_vm(self, vm_id: str) -> None:
         pass
 
-    # Add vm for monitoring
-    def register_vm(vm_id) -> None:
+    # Inheriting classes implement
+    # Vm moved to a new host, can remove this vm from monitoring
+    # Clean up the datastructures for this vm
+    def vm_moved(self, vm_id: str) -> None:
         pass
         
-    # Vm moved to a new host, need to refresh the data(vm pid etc..) for the VM 
-    def vm_moved(vm_id) -> None:
-        pass
 
-    def update_histogram(self, vm_id, resource_usage, host: bool = False) -> None:
-        if host:
-            for interval in range(0,100,5):
-                if resource_usage >= interval and resource_usage < interval + 5:
-                    self.host_histogram[interval] = (self.host_histogram[interval]*(total_intervals-1) + 1)/total_intervals
-                else:
-                    self.host_histogram[interval] = (self.host_histogram[interval]*(total_intervals-1))/total_intervals
-        else:
-            for interval in range(0,100,5):
-                if resource_usage >= interval and resource_usage < interval + 5:
-                    self.vm_histograms[vm_id][interval] = (self.vm_histograms[vm_id][interval]*(total_intervals-1) + 1)/total_intervals
-                else:
-                    self.vm_histograms[vm_id][interval] = (self.vm_histograms[vm_id][interval]*(total_intervals-1))/total_intervals
+    def update(self) -> None:
+        while True:
+            self.total_intervals += 1
+            (host_stat, vm_stats) = self.collect_stats()
 
-    def update_timeseries(self, vm_id, resource_usage, host: bool = False) -> None:
-        pass
+            for vm_id, usage in vm_stats.items():
+                self.update_histogram(vm_id, usage)
+                self.update_timeseries(vm_id, usage)
+
+            self.update_histogram(None, host_stat, host=True)
+            self.update_timeseries(None, host_stat, host=True)
+
+            time.sleep(config.MONITOR_INTERVAL)
+
+
+    def update_histogram(self, vm_id: str, resource_usage, host: bool = False) -> None:
+        hist = self.host_histogram
+        if not host:
+            hist = self.vm_histograms[vm_id]
+
+        for interval in range(0,100,5):
+            if resource_usage >= interval and resource_usage < interval + 5:
+                hist[interval] = (hist[interval] * (self.total_intervals -1) + 1) / self.total_intervals
+            else:
+                hist[interval] = (hist[interval] * (self.total_intervals - 1)) / self.total_intervals
+      
+
+    def update_timeseries(self, vm_id: str, resource_usage, host: bool = False) -> None:
+        timeseries = self.host_timeseries
+        if not host:
+            timeseries = self.vm_timeseries[vm_id]
+        idx = (self.total_intervals - 1) % config.TIME_SERIES_LEN
+
+        timeseries[idx] = resource_usage
+
+            
+    def get_host_stats(self) -> Tuple(List[float], Dict[int : float]):
+        return self.host_timeseries, self.host_histogram
+
+    def get_vm_stats(self, vm_id: str) -> Tuple(List[float], Dict[int : float]):
+        return self.vm_timeseries[vm_id], self.vm_histograms[vm_id]
+

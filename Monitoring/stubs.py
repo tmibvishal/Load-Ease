@@ -1,7 +1,7 @@
-def get_vm_pid(vm_id):
+def get_vm_pid(vm_id: str) -> int:
     pass
 
-def get_vm_tap_device(vm_id):
+def get_vm_tap_device(vm_id: str) -> str:
     pass
 
 def get_host_tap_device():

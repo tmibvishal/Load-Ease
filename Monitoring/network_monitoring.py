@@ -1,6 +1,6 @@
+from typing import Any, Dict, List, Tuple, Union
 from monitor import Monitor
 from stubs import get_vm_tap_device,get_host_tap_device
-from typing import List, Any, Tuple, Dict
 
 class NetworkMonitor(Monitor):
 
