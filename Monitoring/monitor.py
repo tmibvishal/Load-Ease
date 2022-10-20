@@ -4,6 +4,7 @@ import config
 class Monitor:
     def __init__(self, vm_ids=[]) -> None:
         # Histogram[i] = percentage number of times usage was in [i, i + 5)
+        self.vm_ids = []
         self.host_histogram : dict[int : float] = {i : 0 for i in range(0, 100, 5)}
         self.host_timeseries = [0] * config.TIME_SERIES_LEN
 
