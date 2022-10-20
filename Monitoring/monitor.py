@@ -67,7 +67,7 @@ class Monitor:
                 hist[interval] = (hist[interval] * (self.total_intervals - 1)) / self.total_intervals
       
 
-    def update_timeseries(self, vm_id, resource_usage, host: bool = False) -> None:
+    def update_timeseries(self, vm_id: str, resource_usage, host: bool = False) -> None:
         timeseries = self.host_timeseries
         if not host:
             timeseries = self.vm_timeseries[vm_id]
@@ -79,6 +79,6 @@ class Monitor:
     def get_host_stats(self) -> Tuple(List[float], Dict[int : float]):
         return self.host_timeseries, self.host_histogram
 
-    def get_vm_stats(self, vm_id) -> Tuple(List[float], Dict[int : float]):
+    def get_vm_stats(self, vm_id: str) -> Tuple(List[float], Dict[int : float]):
         return self.vm_timeseries[vm_id], self.vm_histograms[vm_id]
 
