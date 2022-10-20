@@ -1,4 +1,4 @@
 from monitor import Monitor
 
-class CpuMonitor(Monitor):
+class MemoryMonitor(Monitor):
     pass

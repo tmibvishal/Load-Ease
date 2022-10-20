@@ -7,7 +7,13 @@ def available():
     d = {'available' : str(mem.available)}
     return d
 
-server = SimpleXMLRPCServer(("localhost", 8000))
-print("Listening on port 8000...")
-server.register_function(available, "available")
-server.serve_forever()
+# Main function of Monitoring Service
+# This script will run in all hosts.
+# And will set up RPC Calls / Other API for the Load balancer to use.
+if __name__ == '__main__':
+    server = SimpleXMLRPCServer(("localhost", 8000))
+    print("Listening on port 8000...")
+    server.register_function(available, "available")
+    server.serve_forever()
+    pass
+
