@@ -4,8 +4,8 @@
 - Read paper of sandpiper
 
 # Notes
-## CPU Monitoring
-### Host  (Ramneek + Tushar + Sahil)
+## CPU Monitoring (Ramneek + Tushar + Sahil)
+### Host
 - CPU usage for each VM (just check cpu usage for vm process)
 - In CPU monitoring of different VMs, we will not be able to directly monitor the work done during copying from memory to buffers (work done during IO)
     - This work is done by HOST
