@@ -8,11 +8,11 @@ class Monitor:
     def __init__(self, vm_ids=[]) -> None:
         # Histogram[i] = percentage number of times usage was in [i, i + 5)
         self.vm_ids = vm_ids
-        self.host_histogram : dict[int : int] = {i : 0 for i in range(0, 100, 5)}
-        self.host_timeseries = [0] * config.TIME_SERIES_LEN
+        self.host_histogram : dict[int : float] = {i : 0 for i in range(0, 100, 5)}
+        self.host_timeseries = []
 
         self.vm_histograms = { vm_id : {i : 0 for i in range(0, 100, 5)} for vm_id in vm_ids }
-        self.vm_timeseries = { vm_id : [0] * config.TIME_SERIES_LEN for vm_id in vm_ids } 
+        self.vm_timeseries = { vm_id : [] for vm_id in vm_ids } 
 
         self.total_intervals = 0
 
@@ -24,8 +24,19 @@ class Monitor:
     
     # Inheriting classes implement
     # return (host_usage %, and Dict[vmid : vm usage %])
+    # Flaot = Percentage, Ex: 95.2 % -> 95.2 (not 0.952)
     def collect_stats(self) -> Tuple(float, Dict[str, float]):
         pass
+
+    # for host->
+    # 0 -> 0.5 mem %
+    # 0.5 -> 100 % 
+    # 0.1 -> 20 %
+
+    # 0.6 -> 10 % swap used
+
+    # for vm -> 
+    # 0 - 1.0 : % of vm memory used
 
 
     # Inheriting classes implement
@@ -43,6 +54,7 @@ class Monitor:
     def update(self) -> None:
         while True:
             self.total_intervals += 1
+
             (host_stat, vm_stats) = self.collect_stats()
 
             for vm_id, usage in vm_stats.items():
@@ -54,12 +66,12 @@ class Monitor:
 
             time.sleep(config.MONITOR_INTERVAL)
 
-
+    
     def update_histogram(self, vm_id, resource_usage, host: bool = False) -> None:
         hist = self.host_histogram
         if not host:
             hist = self.vm_histograms[vm_id]
-
+        
         for interval in range(0,100,5):
             if resource_usage >= interval and resource_usage < interval + 5:
                 hist[interval] = (hist[interval] * (self.total_intervals -1) + 1) / self.total_intervals
@@ -68,12 +80,12 @@ class Monitor:
       
 
     def update_timeseries(self, vm_id, resource_usage, host: bool = False) -> None:
-        timeseries = self.host_timeseries
+        timeseries : List = self.host_timeseries
         if not host:
             timeseries = self.vm_timeseries[vm_id]
-        idx = (self.total_intervals - 1) % config.TIME_SERIES_LEN
-
-        timeseries[idx] = resource_usage
+        timeseries.append(resource_usage)
+        if len(timeseries) > config.TIME_SERIES_LEN:
+            timeseries.pop(0)
 
             
     def get_host_stats(self) -> Tuple(List[float], Dict[int : float]):
