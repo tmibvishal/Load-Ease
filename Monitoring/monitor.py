@@ -1,4 +1,3 @@
-from turtle import update
 from typing import List, Any, Tuple, Dict, int
 import config
 from threading import Thread
@@ -28,18 +27,7 @@ class Monitor:
     def collect_stats(self) -> Tuple(float, Dict[str, float]):
         pass
 
-    # for host->
-    # 0 -> 0.5 mem %
-    # 0.5 -> 100 % 
-    # 0.1 -> 20 %
-
-    # 0.6 -> 10 % swap used
-
-    # for vm -> 
-    # 0 - 1.0 : % of vm memory used
-
-
-    # Inheriting classes implement
+   
     # Implement in base class, add a new vm for monitoring
     def register_vm(self, vm_id) -> None:
         pass
