@@ -17,7 +17,7 @@ class Monitor:
 
 
     def start(self) -> None:
-        th = Thread(target=update, args=(self))
+        th = Thread(target=self.update, args=(self))
         th.start()
 
     
