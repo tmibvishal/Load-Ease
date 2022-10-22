@@ -1,4 +1,5 @@
-from typing import Dict
+from collections import defaultdict
+from typing import Dict, List
 import psutil
 from cpu_monitoring import CpuMonitor
 from network_monitoring import NetworkMonitor

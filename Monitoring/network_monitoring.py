@@ -15,7 +15,7 @@ class NetworkMonitor(Monitor):
         # return current used , host, for all vm ids
         # add try catch
         # use stubs for get vm tap device
-        try:  
+        try:
             hostTap = get_host_tap_device()
             f_rx = open("/sys/class/net/{}/statistics/rx_packets".format(hostTap), "r")
             f_tx = open("/sys/class/net/{}/statistics/tx_packets".format(hostTap), "r")
@@ -31,8 +31,7 @@ class NetworkMonitor(Monitor):
 
             tot_vm_usage = sum(vm_usage.values())
             vm_usage = {vm_id : 100*(vm_usage[vm_id]/tot_vm_usage) for vm_id in vm_usage}
-            return (host_usage, vm_usage)  
+            return (host_usage, vm_usage)
         except Exception as e:
             eprint("Error in collecting network stats:", e)
             return 0, {}
-        

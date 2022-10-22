@@ -9,7 +9,7 @@ class Monitor:
         self.vm_ids = vm_ids
         self.host_histogram : dict[int, float] = {i : 0 for i in range(0, 100, 5)}
         self.host_timeseries = [0] * config.TIME_SERIES_LEN
-        
+
         self.vm_histograms = { vm_id : {i : 0 for i in range(0, 100, 5)} for vm_id in vm_ids }
         self.vm_timeseries = { vm_id : [0] * config.TIME_SERIES_LEN for vm_id in vm_ids } 
 
