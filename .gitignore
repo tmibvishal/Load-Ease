@@ -129,4 +129,5 @@ dmypy.json
 .pyre/
 
 .DS_Store
+.vscode
 metrics_of_grading.md

@@ -1,7 +1,7 @@
-from Monitoring.stubs import get_vm_pid
-from Monitoring.utils import eprint
+from stubs import get_vm_pid
+from utils import eprint
 from monitor import Monitor
-from typing import Any, Dict, List, Tuple, Union
+from typing import Dict, Tuple, Union
 import psutil
 
 class MemoryMonitor(Monitor):
