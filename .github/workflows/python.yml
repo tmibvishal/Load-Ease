@@ -1,11 +1,6 @@
 name: Python workflow
 
-on:
-  push:
-      branches:
-        - **
-  pull_request:
-      branches: [master]
+on: [push, pull_request]
 
 
 jobs:
