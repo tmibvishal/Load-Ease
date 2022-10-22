@@ -15,7 +15,9 @@ class MemoryMonitor(Monitor):
         This function will be periodically invoked to populate the histogram 
         and time series data.
         :return: tuple
-                1) First element of the tuple is the swap memory in host
+                1) First element of the tuple is the current + swap memory in host
+                    1.1) 0.5 -> 100% Mem Utilization
+                    1.2) 0.6 -> 100% Mem + 10% Swap
                 2) Second element of the tuple is a dictionary with mapping 
                    vm_id to percentage of memory it uses on the host
         """
@@ -24,8 +26,10 @@ class MemoryMonitor(Monitor):
         # Host stats are nothing but the swap memory used
         # We'd want to decrease this swap memory
         swap_mem_stats = psutil.swap_memory()
-        used_swap = swap_mem_stats.used
-        host_stats = used_swap
+        used_swap = swap_mem_stats.used / swap_mem_stats.total * 0.5
+        virt_stats = psutil.virtual_memory()
+        ram_used = virt_stats.used / virt_stats.total * 0.5
+        host_stats = ram_used + used_swap
 
         # Getting the VM stats
         vm_stats = {}
