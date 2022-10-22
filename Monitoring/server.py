@@ -65,5 +65,7 @@ if __name__ == '__main__':
     
     server.register_function(register_vm, 'register_vm')
     server.serve_forever()
+    while True:
+        print('yo')
 
 

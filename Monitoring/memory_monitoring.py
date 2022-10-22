@@ -1,5 +1,5 @@
-from Monitoring.stubs import get_vm_pid
-from Monitoring.utils import eprint
+from stubs import get_vm_pid
+from utils import eprint
 from monitor import Monitor
 from typing import Any, Dict, List, Tuple, Union
 import psutil
@@ -11,14 +11,14 @@ class MemoryMonitor(Monitor):
 
     def collect_stats(self) -> Tuple[float, Dict[str, float]]:
         """
-        This will collect host-side RAM statistics. 
-        This function will be periodically invoked to populate the histogram 
+        This will collect host-side RAM statistics.
+        This function will be periodically invoked to populate the histogram
         and time series data.
         :return: tuple
                 1) First element of the tuple is the current + swap memory in host
                     1.1) 0.5 -> 100% Mem Utilization
                     1.2) 0.6 -> 100% Mem + 10% Swap
-                2) Second element of the tuple is a dictionary with mapping 
+                2) Second element of the tuple is a dictionary with mapping
                    vm_id to percentage of memory it uses on the host
         """
 
@@ -37,7 +37,7 @@ class MemoryMonitor(Monitor):
             vm_info = self._get_vm_stat(vm_id)
             vm_stats[vm_id] = vm_info['memory_percent']
         return host_stats, vm_stats
-    
+
     @staticmethod
     def _get_vm_stat(vm_id: str) -> Dict[str, Union[str, int, float]]:
         # Iterate over all running process

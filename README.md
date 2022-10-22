@@ -3,6 +3,7 @@
 # TODO for all
 - Read paper of sandpiper
 
+
 # Notes
 ## CPU Monitoring (Ramneek + Tushar + Sahil)
 ### Host
@@ -26,10 +27,14 @@
 - Monitor the tap device (Virtual NIC) in VMM Reference
 
 
-## Make a histogram (Vishal + Saurav)
-Profile generation in Sandpiper
-Paper Link: https://www.sciencedirect.com/science/article/pii/S1389128609002035  
-We need to dynamically make (they will change) a histogram accumulating resource usage in time intervals making Time Series Profile and also generate Utilization Profile
+## Basic frontend
+- Make a simple frontend to display histogram & timeseries for each vm and each host.  
+
+## Load Balancing
+- Provision VM (choose where to launch a new VM)
+- Detect hotspot
+- Choose the suitable VM to migrate and to which host, in case of hotspot. 
+
 
 
 
