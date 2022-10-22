@@ -38,4 +38,6 @@ jobs:
 
     - name: Test Compile & Run
       run: |
-        
+        python3 Monitoring/server.py &
+        sleep 5
+        pkill -9 -f server.py
