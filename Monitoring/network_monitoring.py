@@ -19,8 +19,8 @@ class NetworkMonitor(Monitor):
             hostTap = get_host_tap_device()
             f_rx = open("/sys/class/net/{}/statistics/rx_packets".format(hostTap), "r")
             f_tx = open("/sys/class/net/{}/statistics/tx_packets".format(hostTap), "r")
-            host_usage = float(f_rx.read()) + float(f_tx.read()) - prev_host_usage
-            prev_host_usage = float(f_rx.read()) + float(f_tx.read())
+            host_usage = float(f_rx.read()) + float(f_tx.read()) - self.prev_host_usage
+            self.prev_host_usage = float(f_rx.read()) + float(f_tx.read())
             vm_usage = {}
             for vm_id in self.vm_ids:
                 vmTap = get_vm_tap_device(vm_id)
@@ -32,7 +32,7 @@ class NetworkMonitor(Monitor):
             tot_vm_usage = sum(vm_usage.values())
             vm_usage = {vm_id : 100*(vm_usage[vm_id]/tot_vm_usage) for vm_id in vm_usage}
             return (host_usage, vm_usage)  
-        except:
-            eprint("Error in collecting network stats")
+        except Exception as e:
+            eprint("Error in collecting network stats:", e)
             return 0, {}
         
