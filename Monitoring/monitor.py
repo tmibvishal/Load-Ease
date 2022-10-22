@@ -1,16 +1,15 @@
-from turtle import update
-from typing import List, Any, Tuple, Dict, int
+from typing import List, Tuple, Dict, Any
 import config
 from threading import Thread
 import time
 
 class Monitor:
-    def __init__(self, vm_ids=[]) -> None:
+    def __init__(self, vm_ids : List[Any]=[]) -> None:
         # Histogram[i] = percentage number of times usage was in [i, i + 5)
         self.vm_ids = vm_ids
         self.host_histogram : dict[int, float] = {i : 0 for i in range(0, 100, 5)}
         self.host_timeseries = [0] * config.TIME_SERIES_LEN
-
+        
         self.vm_histograms = { vm_id : {i : 0 for i in range(0, 100, 5)} for vm_id in vm_ids }
         self.vm_timeseries = { vm_id : [0] * config.TIME_SERIES_LEN for vm_id in vm_ids } 
 
@@ -18,13 +17,13 @@ class Monitor:
 
 
     def start(self) -> None:
-        th = Thread(target=update, args=(self))
+        th = Thread(target=self.update, args=(), daemon=True)
         th.start()
 
     
     # Inheriting classes implement
     # return (host_usage %, and Dict[vmid : vm usage %])
-    def collect_stats(self) -> Tuple(float, Dict[str, float]):
+    def collect_stats(self) -> Tuple[float, Dict[str, float]]:
         pass
 
 
@@ -76,9 +75,9 @@ class Monitor:
         timeseries[idx] = resource_usage
 
             
-    def get_host_stats(self) -> Tuple(List[float], Dict[int : float]):
+    def get_host_stats(self) -> Tuple[List[float], Dict[int, float]]:
         return self.host_timeseries, self.host_histogram
 
-    def get_vm_stats(self, vm_id: str) -> Tuple(List[float], Dict[int : float]):
+    def get_vm_stats(self, vm_id: str) -> Tuple[List[float], Dict[int, float]]:
         return self.vm_timeseries[vm_id], self.vm_histograms[vm_id]
 

@@ -1,5 +1,4 @@
-from collections import defaultdict
-from typing import Dict, List
+from typing import Dict
 import psutil
 from cpu_monitoring import CpuMonitor
 from network_monitoring import NetworkMonitor
@@ -65,5 +64,7 @@ if __name__ == '__main__':
     
     server.register_function(register_vm, 'register_vm')
     server.serve_forever()
+    while True:
+        print('yo')
 
 
