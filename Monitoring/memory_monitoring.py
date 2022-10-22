@@ -4,8 +4,10 @@ from monitor import Monitor
 from typing import Any, Dict, List, Tuple, Union
 import psutil
 
+
 class MemoryMonitor(Monitor):
-    def update_time_seris(self, vm_id, resource_usage, host: bool = False) -> None:
+    def update_time_seris(self, vm_id, resource_usage,
+                          host: bool = False) -> None:
         # In base class. Circular
         pass
 
@@ -15,7 +17,8 @@ class MemoryMonitor(Monitor):
         This function will be periodically invoked to populate the histogram
         and time series data.
         :return: tuple
-                1) First element of the tuple is the current + swap memory in host
+                1) First element of the tuple is the current + swap memory
+                   in host
                     1.1) 0.5 -> 100% Mem Utilization
                     1.2) 0.6 -> 100% Mem + 10% Swap
                 2) Second element of the tuple is a dictionary with mapping
@@ -46,21 +49,30 @@ class MemoryMonitor(Monitor):
         vm_info = {}
         try:
             proc = psutil.Process(pid)
-            assert 'vmm-reference' in proc.name(), f'PID {pid} doesn\'t represent a VM but rather {proc.name()}. Your vm_id to process id mapping is wrong'
-            temp = proc.as_dict(attrs=['pid', 'name', 'cpu_percent', 'memory_percent'])
+            assert 'vmm-reference' in proc.name(), \
+                f'PID {pid} doesn\'t represent a VM but rather {proc.name()}.' \
+                f' Your vm_id to process id mapping is wrong'
+            temp = proc.as_dict(
+                attrs=['pid', 'name', 'cpu_percent', 'memory_percent'])
             temp['memory_bytes'] = temp['memory_percent'] * total / 100
             vm_info = temp
         except psutil.NoSuchProcess:
-            eprint(f'PID {pid} doesn\'t represent any process. Your vm_id to process id mapping is wrong')
+            eprint(
+                f'PID {pid} doesn\'t represent any process. '
+                f'Your vm_id to process id mapping is wrong')
         except psutil.ZombieProcess:
-            eprint(f'PID {pid} represents a ZombieProcess. Your vm_id to process id mapping might be wrong')
+            eprint(
+                f'PID {pid} represents a ZombieProcess. '
+                f'Your vm_id to process id mapping might be wrong')
         except psutil.AccessDenied:
-            eprint(f'Can\'t access PID {pid}. Your vm_id to process id mapping might be wrong')
+            eprint(
+                f'Can\'t access PID {pid}. '
+                f'Your vm_id to process id mapping might be wrong')
         assert len(vm_info) > 0, 'Can\'t get VM Info'
         return vm_info
 
     @staticmethod
-    def _get_all_vm_stats() -> Dict[str, Union[str, int, float]]:
+    def _get_all_vm_stats() -> List[Dict[str, Union[str, int, float]]]:
         # Reference: https://thispointer.com/python-get-list-of-all-running-processes-and-sort-by-highest-memory-usage/
         # Iterate over all running process
         total = psutil.virtual_memory().total
@@ -69,11 +81,14 @@ class MemoryMonitor(Monitor):
             try:
                 # Get process name & pid from process object.
                 if 'vmm-reference' in proc.name():
-                    vm_info = proc.as_dict(attrs=['pid', 'name', 'cpu_percent', 'memory_percent'])
+                    vm_info = proc.as_dict(
+                        attrs=['pid', 'name', 'cpu_percent', 'memory_percent'])
                     vm_info['memory_bytes'] = vm_info['memory_percent'] * total / 100
                     # for k in vm_info:
                     #     vm_info[k] = str(vm_info[k])
                     vm_infos.append(vm_info)
-            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            except (psutil.NoSuchProcess,
+                    psutil.AccessDenied,
+                    psutil.ZombieProcess):
                 pass
         return vm_infos
