@@ -32,11 +32,11 @@ class LoadBalancer():
 
         # Try to provision based on SLA
         best_host = None
-        best_val = 10 ** 20
+        best_val = -(10 ** 20)
         for host_id, vm_ids in self.vms_in_host:
             total_vm_sla_mem = sum([self.vm_configs[vm_id]['mem'] for vm_id in vm_ids])
             leftover_sla_mem = self.host_configs['mem'] - total_vm_sla_mem
-            if leftover_sla_mem >= vm_config['mem'] and leftover_sla_mem < best_val:
+            if leftover_sla_mem >= vm_config['mem'] and leftover_sla_mem > best_val:
                 best_host = host_id
                 best_val = leftover_sla_mem
         
@@ -47,7 +47,7 @@ class LoadBalancer():
 
         # Try to provision based on peak usage
         best_host = None
-        best_val = 10 ** 20
+        best_val = -(10 ** 20)
 
         for host_id, vm_stats in mem_vm_stats.items():
             total_vm_peak_usage = 0
@@ -55,8 +55,8 @@ class LoadBalancer():
                 peak_usage = get_top_perc(vm_hist, 0.95) * self.vm_configs[vm_id]['mem']
                 total_vm_peak_usage += peak_usage
 
-            total_mem_leftover = self.host_configs[host_id]['mem'] - total_vm_peak_usage # Can be -ve
-            if total_mem_leftover >= vm_config['mem'] and total_mem_leftover < best_val:
+            total_mem_leftover = self.host_configs[host_id]['mem'] - total_vm_peak_usage
+            if total_mem_leftover >= vm_config['mem'] and total_mem_leftover > best_val:
                 best_host = host_id
                 best_val = total_mem_leftover
         
@@ -66,7 +66,7 @@ class LoadBalancer():
 
         # Try to provision based peak host usage
         best_host = None
-        best_val = 10 ** 20
+        best_val = -(10 ** 20)
 
         for host_id, (_, host_hist) in mem_host_stats.items():
             # mem_hist, swap_hist = get_mem_swap_hist(host_hist)
@@ -78,7 +78,7 @@ class LoadBalancer():
                 continue
             else:
                 leftover_peak_mem = (1 - peak_host_usage * 2) * self.host_configs[host_id]['mem']
-                if leftover_peak_mem >= vm_config['mem'] and leftover_peak_mem < best_val:
+                if leftover_peak_mem >= vm_config['mem'] and leftover_peak_mem > best_val:
                     best_host = host_id
                     best_val = leftover_peak_mem
         
@@ -99,7 +99,6 @@ class LoadBalancer():
                 best_host = host_id
                 best_val = curr_usage            
 
-        if best_host is not None:
-            return best_host
+        return best_host
 
 
