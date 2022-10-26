@@ -46,3 +46,9 @@ class CpuMonitor(Monitor):
         
         return (avg_host_cpu_usage, vm_stats)
 
+    # return the cpu stats, accounting for the effect of network usage
+    def collect_stats_network_effect(self, host_stat_net: float,
+                vm_stats_net: Dict[str, float]) -> Tuple[float, Dict[str, float]]:
+        # TODO return the cpu stats, accounting for the effect of network usage
+        return self.collect_stats()
+

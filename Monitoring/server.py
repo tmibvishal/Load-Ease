@@ -1,12 +1,28 @@
 from typing import Dict
-import psutil
-
-from config import MON_PORT
+import time
+from threading import Thread
+from config import MON_PORT, MONITOR_INTERVAL
 from cpu_monitoring import CpuMonitor
 from network_monitoring import NetworkMonitor
 from memory_monitoring import MemoryMonitor
 
 from xmlrpc.server import SimpleXMLRPCServer
+
+
+def monitoring_thread(cpu_mon: CpuMonitor, mem_mom: MemoryMonitor, net_mon: NetworkMonitor) -> None:
+    while True:
+        host_stat, vm_stats = mem_mom.collect_stats()
+        mem_mom.update(host_stat, vm_stats)
+
+        host_stat, vm_stats = net_mon.collect_stats()
+        net_mon.update(host_stat, vm_stats)
+
+        host_stat, vm_stats = cpu_mon.collect_stats_network_effect(host_stat, vm_stats)
+        cpu_mon.update(host_stat, vm_stats)
+        
+        time.sleep(MONITOR_INTERVAL)
+
+
 
 
 # Main function of Monitoring Service
@@ -19,9 +35,8 @@ if __name__ == '__main__':
     netmon = NetworkMonitor()
     memmon = MemoryMonitor()
 
-    cpumon.start()
-    netmon.start()
-    memmon.start()
+    th = Thread(target=monitoring_thread, args=(cpumon, memmon, netmon), daemon=True)
+    th.start()
 
     server.register_function(cpumon.get_host_stats, 'get_host_cpu_stats')
     server.register_function(cpumon.get_vm_stats, 'get_vm_cpu_stats')
@@ -40,7 +55,4 @@ if __name__ == '__main__':
     
     server.register_function(register_vm, 'register_vm')
     server.serve_forever()
-    while True:
-        print('yo')
-
 
