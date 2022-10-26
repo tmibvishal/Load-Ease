@@ -20,6 +20,7 @@ class MemoryMonitor(Monitor):
                 1) First element of the tuple is the current + swap memory
                    in host
                     1.1) 0.5 -> 100% Mem Utilization
+
                     1.2) 0.6 -> 100% Mem + 10% Swap
                 2) Second element of the tuple is a dictionary with mapping
                    vm_id to percentage of memory it uses on the host
@@ -34,6 +35,9 @@ class MemoryMonitor(Monitor):
         ram_used = virt_stats.used / virt_stats.total * 0.5
         host_stats = ram_used + used_swap
 
+        # print all vm ids
+        print(f"vm-ids: {self.vm_ids}")
+
         # Getting the VM stats
         vm_stats = {}
         for vm_id in self.vm_ids:
@@ -45,7 +49,7 @@ class MemoryMonitor(Monitor):
     def _get_vm_stat(vm_id: str) -> Dict[str, Union[str, int, float]]:
         # Iterate over all running process
         total = psutil.virtual_memory().total
-        pid = get_vm_pid(vm_id)
+        pid = vm_id #get_vm_pid(vm_id)
         vm_info = {}
         try:
             proc = psutil.Process(pid)
