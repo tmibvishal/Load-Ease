@@ -1,5 +1,5 @@
-from collections import defaultdict
-from typing import Dict, List
+from config import MON_PORT
+from typing import Dict
 import psutil
 from cpu_monitoring import CpuMonitor
 from network_monitoring import NetworkMonitor
@@ -38,7 +38,7 @@ def get_vm_infos() -> Dict[str, str]:
 # This script will run in all hosts.
 # And will set up RPC Calls / Other API for the Load balancer to use.
 if __name__ == '__main__':
-    server = SimpleXMLRPCServer(("localhost", 8000))
+    server = SimpleXMLRPCServer(("localhost", MON_PORT))
     print("Listening on port 8000...")
     cpumon = CpuMonitor()
     netmon = NetworkMonitor()
