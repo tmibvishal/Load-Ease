@@ -1,5 +1,13 @@
-rpc_mon_host_proxys = [] # TODO (Ramneek)
+import redis
+
+# rpc_mon_host_proxys = []  # TODO (Ramneek)
+# This will now be present in Redis
+# In this way, you can keep starting new hosts and hotspot will dynamically
+# manage it
 
 HOTSPOT_THRESHOLD = 0.80
 NUM_INTERVALS_FOR_HOTSPOT_CONF = 10
 
+rds = redis.Redis()
+# Run redis on main server
+# We can also use proper distributed databases for better fault tolerance

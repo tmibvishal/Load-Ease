@@ -6,7 +6,7 @@ import psutil
 
 
 class MemoryMonitor(Monitor):
-    def update_time_seris(self, vm_id, resource_usage,
+    def update_time_series(self, vm_id, resource_usage,
                           host: bool = False) -> None:
         # In base class. Circular
         pass
