@@ -55,7 +55,7 @@ def background_task():
 
         # Check if vm with id best can be moved to target_host
         # And then start the migration
-      
+
 
     sleep(5)  # Wait for 5 sec
 
