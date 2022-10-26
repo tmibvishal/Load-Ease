@@ -1,4 +1,4 @@
-from LoadBalancing.config import MON_PORT
+from config import MON_PORT
 from typing import Dict
 import psutil
 from cpu_monitoring import CpuMonitor
