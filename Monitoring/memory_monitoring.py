@@ -34,6 +34,9 @@ class MemoryMonitor(Monitor):
         ram_used = virt_stats.used / virt_stats.total * 0.5
         host_stats = ram_used + used_swap
 
+        # print all vm ids
+        print(f"vm-ids: {self.vm_ids}")
+
         # Getting the VM stats
         vm_stats = {}
         for vm_id in self.vm_ids:
