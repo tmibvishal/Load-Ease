@@ -6,7 +6,7 @@ import psutil
 
 
 class MemoryMonitor(Monitor):
-    def update_time_seris(self, vm_id, resource_usage,
+    def update_time_series(self, vm_id, resource_usage,
                           host: bool = False) -> None:
         # In base class. Circular
         pass
@@ -20,7 +20,6 @@ class MemoryMonitor(Monitor):
                 1) First element of the tuple is the current + swap memory
                    in host
                     1.1) 0.5 -> 100% Mem Utilization
-
                     1.2) 0.6 -> 100% Mem + 10% Swap
                 2) Second element of the tuple is a dictionary with mapping
                    vm_id to percentage of memory it uses on the host
@@ -49,7 +48,7 @@ class MemoryMonitor(Monitor):
     def _get_vm_stat(vm_id: str) -> Dict[str, Union[str, int, float]]:
         # Iterate over all running process
         total = psutil.virtual_memory().total
-        pid = vm_id #get_vm_pid(vm_id)
+        pid = get_vm_pid(vm_id)
         vm_info = {}
         try:
             proc = psutil.Process(pid)

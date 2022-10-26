@@ -7,8 +7,8 @@ class Monitor:
     def __init__(self, vm_ids : List[Any]=[]) -> None:
         # Histogram[i] = percentage number of times usage was in [i, i + 5)
         self.vm_ids = vm_ids
-        self.host_histogram : dict[int : float] = {i : 0 for i in range(0, 100, 5)}
-        self.host_timeseries = []
+        self.host_histogram : dict[int, float] = {i : 0 for i in range(0, 100, 5)}
+        self.host_timeseries = [0] * config.TIME_SERIES_LEN
 
         self.vm_histograms = { vm_id : {i : 0 for i in range(0, 100, 5)} for vm_id in vm_ids }
         self.vm_timeseries = { vm_id : [] for vm_id in vm_ids }
@@ -30,13 +30,13 @@ class Monitor:
 
     # Inheriting classes implement
     # Implement in base class, add a new vm for monitoring
-    def register_vm(self, vm_id) -> None:
+    def register_vm(self, vm_id: str) -> None:
         pass
 
     # Inheriting classes implement
     # Vm moved to a new host, can remove this vm from monitoring
     # Clean up the datastructures for this vm
-    def vm_moved(self, vm_id) -> None:
+    def vm_moved(self, vm_id: str) -> None:
         pass
         
 
@@ -56,7 +56,7 @@ class Monitor:
             time.sleep(config.MONITOR_INTERVAL)
 
 
-    def update_histogram(self, vm_id, resource_usage, host: bool = False) -> None:
+    def update_histogram(self, vm_id: str, resource_usage, host: bool = False) -> None:
         hist = self.host_histogram
         if not host:
             hist = self.vm_histograms[vm_id]
@@ -68,7 +68,7 @@ class Monitor:
                 hist[interval] = (hist[interval] * (self.total_intervals - 1)) / self.total_intervals
       
 
-    def update_timeseries(self, vm_id, resource_usage, host: bool = False) -> None:
+    def update_timeseries(self, vm_id: str, resource_usage, host: bool = False) -> None:
         timeseries : List = self.host_timeseries
         if not host:
             timeseries = self.vm_timeseries[vm_id]

@@ -1,6 +1,7 @@
-from config import MON_PORT
 from typing import Dict
 import psutil
+
+from config import MON_PORT
 from cpu_monitoring import CpuMonitor
 from network_monitoring import NetworkMonitor
 from memory_monitoring import MemoryMonitor
