@@ -8,7 +8,7 @@ class Monitor:
         # Histogram[i] = percentage number of times usage was in [i, i + 5)
         self.vm_ids = vm_ids
         self.host_histogram : dict[int, float] = {i : 0 for i in range(0, 100, 5)}
-        self.host_timeseries = [0] * config.TIME_SERIES_LEN
+        self.host_timeseries = []
 
         self.vm_histograms = { vm_id : {i : 0 for i in range(0, 100, 5)} for vm_id in vm_ids }
         self.vm_timeseries = { vm_id : [] for vm_id in vm_ids }
