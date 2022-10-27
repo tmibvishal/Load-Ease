@@ -6,7 +6,7 @@ from threading import Thread
 import time
 
 class Monitor:
-    def __init__(self, vm_ids : List[Any]=[]) -> None:
+    def __init__(self, vm_ids : List[str]=[]) -> None:
         # Histogram[i] = percentage number of times usage was in [i, i + 5)
         self.vm_ids = vm_ids
         self.host_histogram : Dict[int , float] = {i : 0 for i in range(0, 100, 5)}
@@ -30,12 +30,21 @@ class Monitor:
     def register_vm(self, vm_id) -> None:
         pass
 
-    # Inheriting classes implement
-    # Vm moved to a new host, can remove this vm from monitoring
-    # Clean up the datastructures for this vm
-    def vm_moved(self, vm_id) -> None:
-        pass
-        
+    
+    def update_vm_ids(self, vm_ids: List[str]):
+        self.vm_ids = vm_ids
+        new_histograms = { vm_id : {i : 0 for i in range(0, 100, 5)} for vm_id in vm_ids }
+        new_timeseries = { vm_id : [] for vm_id in vm_ids }
+        for vm_id in vm_ids:
+            if vm_id in self.vm_histograms:
+                assert(vm_id in self.timeseries)
+                new_histograms[vm_id] = self.vm_histograms[vm_id]
+                new_timeseries[vm_id] = self.vm_timeseries[vm_id]
+                
+        self.vm_histograms = new_histograms
+        self.vm_timeseries = new_timeseries
+
+
 
     def update(self, host_stat: float, vm_stats: Dict[str, float]) -> None:
         self.total_intervals += 1

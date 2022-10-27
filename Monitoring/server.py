@@ -1,7 +1,8 @@
 from typing import Dict
 import time
 from threading import Thread
-from config import MON_PORT, MONITOR_INTERVAL
+from config import MON_PORT, MONITOR_INTERVAL, HOST_ID
+from stubs import get_vm_ids
 from cpu_monitoring import CpuMonitor
 from network_monitoring import NetworkMonitor
 from memory_monitoring import MemoryMonitor
@@ -9,10 +10,16 @@ from memory_monitoring import MemoryMonitor
 from xmlrpc.server import SimpleXMLRPCServer
 
 
-def monitoring_thread(cpu_mon: CpuMonitor, mem_mom: MemoryMonitor, net_mon: NetworkMonitor) -> None:
+def monitoring_thread(cpu_mon: CpuMonitor, mem_mon: MemoryMonitor, net_mon: NetworkMonitor) -> None:
     while True:
-        host_stat, vm_stats = mem_mom.collect_stats()
-        mem_mom.update(host_stat, vm_stats)
+
+        vm_ids = get_vm_ids()
+        cpu_mon.update_vm_ids(vm_ids)
+        mem_mon.update_vm_ids(vm_ids)
+        net_mon.update_vm_ids(vm_ids)
+
+        host_stat, vm_stats = mem_mon.collect_stats()
+        mem_mon.update(host_stat, vm_stats)
 
         host_stat, vm_stats = net_mon.collect_stats()
         net_mon.update(host_stat, vm_stats)
