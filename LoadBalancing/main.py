@@ -1,5 +1,9 @@
 import logging
 from flask import Flask, request, jsonify
+import json
+
+from balancer import create_vm
+
 
 app = Flask(__name__)
 
@@ -20,8 +24,10 @@ def home():
 @app.route('/create', methods=['POST'])
 def create_vm():
   req = request.get_json()
-  print(req)
-  return jsonify({'success': True, 'response': 'Successful', 'vm_id': 1, 'host_proxy': '', 'pid': 1, 'tap_device': '', 'vm_attrs': {}})
+  req = json.loads(req)
+  vm_attrs = create_vm(req)
+  print(vm_attrs)
+  return jsonify({'success': True, 'response': 'Successful', 'vm_attrs': vm_attrs})
 
 
 @app.route('/ping')

@@ -48,3 +48,21 @@ def get_ip():
   finally:
     s.close()
   return IP
+
+
+def deserialize_rds_dict(hset):
+  ret = {}
+  for k, v in hset.items():
+    k = k.decode()
+    v = v.decode()
+    ret[k] = v
+    if v.isnumeric():
+      ret[k] = int(v)
+  return ret
+
+def deserialize_rds_str_list(lst):
+  ret = []
+  for i in lst:
+    i = i.decode()
+    ret.append(i)
+  return ret
