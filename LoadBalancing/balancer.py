@@ -246,6 +246,7 @@ def create_vm(vm_config):
 
         vm_config['vm_id'] = vm_id
         vm_config['host_id'] = host_id
+        vm_config['tap_device'] = f'tap:{vm_id}'
 
         resp = vmm_backend.create_vm_request(vm_config)
 
@@ -253,7 +254,8 @@ def create_vm(vm_config):
             vm_config[k] = v
 
         pid = resp['pid']
-        tap_device = resp['tap_device']
+        tap_device = vm_config['tap_device']
+
         rpc_port = resp['rpc_port']
         # TODO create call in monitoring services to add new vm
 
