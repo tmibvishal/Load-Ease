@@ -1,9 +1,15 @@
 import config
+from config import rds, migration_lock
+from utils import get_top_perc, deserialize_rds_dict, deserialize_rds_str_list
 from typing import Dict, List, str, Any
 from xmlrpc.client import ServerProxy
-from utils import get_top_perc
+import uuid
 
+
+# TODO (update all the state in redis in a transaction)
+# TODO (use redis in monitor.py and elsewhere to get the state of the vms)
 class LoadBalancer():
+    # Don't initialize like this (moved to redis)
     def __init__(self, host_configs : Dict[str, Dict[str : Any]]) -> None:
         self.host_configs = host_configs
         self.vms_in_host : Dict[str, List[str]] = {host_id : [] for host_id in host_configs.keys()}
@@ -14,13 +20,39 @@ class LoadBalancer():
                 for (host_id, host_cfg) in host_configs.items()
             }
 
+    def __init__(self) -> None:
+        self.host_ids : List[str] = []
+        self.host_configs = {}
+        self.vms_in_host : Dict[str, List[str]] = {}
+        self.vm_configs : Dict[str, Dict] = {}
+        self.mons : Dict[str, ServerProxy] = {}
+
+
+    # Assumes caller has migration lock
     def provision(self, vm_config) -> str:
+        # Build latest state from redis
+        self.host_ids = deserialize_rds_str_list(rds.smembers("host_ids"))
+        self.host_configs = {}
+        for host_id in self.host_ids:
+            self.host_configs[host_id] = deserialize_rds_dict(rds.hgetall(f"host_configs:{host_id}"))
+
+        self.vms_in_host = {}
+        self.vm_configs = {}
+        for host_id in self.host_ids:
+            self.vms_in_host[host_id] = deserialize_rds_str_list(rds.smembers(f"vms_in_host:{host_id}"))
+            for vm_id in self.vms_in_host[host_id]:
+                self.vm_configs[vm_id] = deserialize_rds_dict(rds.hgetall(f"vm_configs:{vm_id}"))
+                for key, val in self.vm_configs[vm_id].items():
+                    self.vm_configs[vm_id][key] = int(val)
+
+        self.mons = {}
+        for host_id in self.host_ids:
+            proxy_addr = rds.get(f"mon_proxy_addr:{host_id}").decode()
+            self.mons[host_id] = ServerProxy(proxy_addr)
+
+        # Get best host
         host_id = self.get_best_host(vm_config)
-        # self.vms_in_host[host_id].append(vm_config['id'])
-        # self.vm_configs[vm_config['id']] = vm_config
-        # ^^^ do the above 2 now or after the vm is started ?
-        # will definitely need to do the above two, if another launch_vm request can come
-        # before the prev. vm is actually launched 
+
         return host_id
 
     
@@ -206,8 +238,33 @@ class LoadBalancer():
         return best_host
 
     
+vm_provioner = LoadBalancer()
 
+import vmm_backend
 
+def create_vm(vm_config):
+    with migration_lock:
+        host_id = vm_provioner.get_best_host(vm_config)
+        vm_id = str(uuid.uuid4())
 
-        
+        vm_config['vm_id'] = vm_id
+        vm_config['host_id'] = host_id
+        vm_config['tap_device'] = f'tap:{vm_id}'
+
+        resp = vmm_backend.create_vm_request(vm_config)
+
+        for k,v in resp.items():
+            vm_config[k] = v
+
+        pid = resp['pid']
+        tap_device = vm_config['tap_device']
+
+        rpc_port = resp['rpc_port']
+        # TODO create call in monitoring services to add new vm
+
+        # Add vm info. in redis
+        rds.hset(f'vm_config:{vm_id}', mapping=vm_config)
+
+    return vm_config
+
 
