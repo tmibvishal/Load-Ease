@@ -5,6 +5,9 @@ from typing import Dict, List, str, Any
 from xmlrpc.client import ServerProxy
 import uuid
 
+
+# TODO (update all the state in redis in a transaction)
+# TODO (use redis in monitor.py and elsewhere to get the state of the vms)
 class LoadBalancer():
     # Don't initialize like this (moved to redis)
     def __init__(self, host_configs : Dict[str, Dict[str : Any]]) -> None:
