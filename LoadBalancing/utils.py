@@ -1,3 +1,9 @@
+import grpc
+import mon_pb2
+import mon_pb2_grpc
+from rpc_utils import grpcStat2py
+
+
 def get_top_perc(hist, perc=0.90):
     covered = 0
     for i in range(0, 100, 5):
@@ -11,7 +17,6 @@ def get_top_perc(hist, perc=0.90):
     else:
         # 100% usage
         return 1.0
-
 
 
 def get_mem_swap_hist(hist):
@@ -66,3 +71,14 @@ def deserialize_rds_str_list(lst):
     i = i.decode()
     ret.append(i)
   return ret
+
+
+def get_stats(proxy):
+  with grpc.insecure_channel(proxy) as channel:
+    stub = mon_pb2_grpc.MonitorStub(channel)
+    response = stub.GetStats(mon_pb2.Empty())
+    return {
+      'cpu': grpcStat2py(response.cpu),
+      'mem': grpcStat2py(response.mem),
+      'net': grpcStat2py(response.swap),
+    }

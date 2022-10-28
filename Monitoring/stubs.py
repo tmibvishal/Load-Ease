@@ -12,6 +12,7 @@ def get_vm_ids():
 def get_vm_pid(vm_id: str) -> int:
     # TODO (ramneek): Get this from redis
     # return rds.hget(f"vm_configs:{vm_id}", 'pid')
+    return 71524
     return os.getpid()
 
 def get_vm_tap_device(vm_id: str) -> str:
