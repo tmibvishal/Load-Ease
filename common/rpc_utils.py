@@ -13,11 +13,11 @@ def py2grpcStat(host_stats, vm_stats):
         vm_stats.append(mon_pb2.VmStat(vm_id= vm_id, histogram = hist, timeseries = time_series))
 
     stat = mon_pb2.Stat(host = host_stat)
-    cpu_stat.vms.extend(vm_stats)
+    stat.vms.extend(vm_stats)
     return stat
 
 def grpcStat2py(stat):
-    host_stats = (list(host.timeseries), grpcMap2pyDict(host.histogram))
+    host_stats = (list(stat.timeseries), grpcMap2pyDict(stat.histogram))
     vm_stats = {}
     for vm in stat.vms:
         vm_stats[vm.vm_id] = (list(vm.timeseries), grpcMap2pyDict(vm.histogram))
