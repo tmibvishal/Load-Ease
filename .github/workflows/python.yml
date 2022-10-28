@@ -24,6 +24,9 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         python -m pip install flake8 psutil redis flask requests
+        python -m pip install common/requirements.txt
+        python -m pip install Monitoring/requirements.txt
+        python -m pip install LoadBalancing/requirements.txt
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
     - name: Lint with flake8
