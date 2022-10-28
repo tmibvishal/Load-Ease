@@ -1,12 +1,12 @@
 from stubs import get_vm_pid
 from monitor import Monitor
 import psutil
-from typing import List, Any, Tuple, Dict, int
+from typing import Tuple, Dict
 
 
 
 class CpuMonitor(Monitor):
-    def __init__(self, vm_ids=...) -> None:
+    def __init__(self, vm_ids=[]) -> None:
         super().__init__(vm_ids)
         # psutil cpu_percent gives garbage value on the first run
         # so making an initial call to get rid of it
@@ -15,7 +15,7 @@ class CpuMonitor(Monitor):
             vm_pid = get_vm_pid(vm_id)
             psutil.Process(vm_pid).cpu_percent(interval=None)/psutil.cpu_count()
     
-    def collect_stats(self) -> Tuple(float, Dict[str, float]):
+    def collect_stats(self) -> Tuple[float, Dict[str, float]]:
         '''
         Returns the average cpu usage of the Host and all the VMs
         '''
@@ -45,4 +45,10 @@ class CpuMonitor(Monitor):
             vm_stats[vm_id] = psutil.Process(vm_pid).cpu_percent(interval=None)/psutil.cpu_count()
         
         return (avg_host_cpu_usage, vm_stats)
+
+    # return the cpu stats, accounting for the effect of network usage
+    def collect_stats_network_effect(self, host_stat_net: float,
+                vm_stats_net: Dict[str, float]) -> Tuple[float, Dict[str, float]]:
+        # TODO return the cpu stats, accounting for the effect of network usage
+        return self.collect_stats()
 
