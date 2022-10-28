@@ -37,7 +37,7 @@ class Monitor:
         new_timeseries = { vm_id : [] for vm_id in vm_ids }
         for vm_id in vm_ids:
             if vm_id in self.vm_histograms:
-                assert(vm_id in self.timeseries)
+                assert(vm_id in self.vm_timeseries)
                 new_histograms[vm_id] = self.vm_histograms[vm_id]
                 new_timeseries[vm_id] = self.vm_timeseries[vm_id]
                 
