@@ -49,6 +49,13 @@ class CpuMonitor(Monitor):
     # return the cpu stats, accounting for the effect of network usage
     def collect_stats_network_effect(self, host_stat_net: float,
                 vm_stats_net: Dict[str, float]) -> Tuple[float, Dict[str, float]]:
-        # TODO return the cpu stats, accounting for the effect of network usage
-        return self.collect_stats()
+
+        host_stat, vm_stats = self.collect_stats()
+        #calculate the cpu usage accounting for the effect of network usage by host
+        host_cpu_used_for_network = host_stat - sum(vm_stats.values())
+        # add proportion of host_cpu_used_for_network to vm_stats
+        for vm_id in vm_stats:
+            vm_stats[vm_id] += host_cpu_used_for_network * vm_stats_net[vm_id]
+        
+        return (host_stat, vm_stats)
 
