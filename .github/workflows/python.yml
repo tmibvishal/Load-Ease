@@ -33,9 +33,10 @@ jobs:
       # You may pin to the exact commit or the version.
       # uses: getong/redis-action@1451151d211b1af327efbf4587f82ec5509cc2f6
       uses: getong/redis-action@v1
+      run: sudo apt-get install -y redis-tools
       with:
         redis version: 7.0-rc3
-    
+
     - name: Verify that redis is up
       run: redis-cli ping
 
