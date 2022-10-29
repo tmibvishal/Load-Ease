@@ -40,4 +40,4 @@ class NetworkMonitor(Monitor):
             return (host_usage, vm_usage)
         except Exception as e:
             eprint("Error in collecting network stats:", e)
-            return 0, {}
+            return 0, {vm_id : 0 for vm_id in self.vm_ids}

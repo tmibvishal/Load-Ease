@@ -43,6 +43,19 @@ class CpuMonitor(Monitor):
         # vm_id to cpu usage
         vm_stats = {}
         for vm_id in self.vm_ids:
+            if vm_id not in self.vm_processes:
+                vm_pid = get_vm_pid(vm_id)
+                self.vm_processes[vm_id] = psutil.Process(vm_pid)
+                self.vm_processes[vm_id].cpu_percent(interval=None)
+
+        vms_to_del = []
+        for vm_id in self.vm_processes.keys():
+            if vm_id not in self.vm_ids:
+                vms_to_del.append(vm_id)
+        
+        for vm_id in vms_to_del:
+            del self.vm_processes[vm_id]
+            
             # divide by the number of cores to get the average cpu usage
             # because cpu_percent might return a value > 100
             # as it sums up the cpu usage of all the cores
