@@ -1,4 +1,5 @@
 from typing import Any, Dict, List, Tuple, Union
+import config
 from monitor import Monitor
 from stubs import get_vm_tap_device,get_host_tap_device
 from utils import eprint
@@ -20,6 +21,11 @@ class NetworkMonitor(Monitor):
             f_rx = open("/sys/class/net/{}/statistics/rx_packets".format(hostTap), "r")
             f_tx = open("/sys/class/net/{}/statistics/tx_packets".format(hostTap), "r")
             host_usage = float(f_rx.read()) + float(f_tx.read()) - self.prev_host_usage
+
+            host_usage_bit_rate = host_usage / config.MONITOR_INTERVAL
+            
+            host_usage = host_usage_bit_rate / (config.HOST_PEAK_NET_BIT_RATE * 2) # x2 to account for both tx and rx
+
             self.prev_host_usage = float(f_rx.read()) + float(f_tx.read())
             vm_usage = {}
             for vm_id in self.vm_ids:
