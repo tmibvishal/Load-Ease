@@ -1,15 +1,17 @@
+import psutil
 from stubs import get_vm_pid
 from monitor import Monitor
-import psutil
 from typing import Tuple, Dict
 
 
 
 class CpuMonitor(Monitor):
-    def __init__(self, vm_ids=[]) -> None:
+    def __init__(self, vm_ids=None) -> None:
         super().__init__(vm_ids)
         # psutil cpu_percent gives garbage value on the first run
         # so making an initial call to get rid of it
+        if vm_ids is None:
+            vm_ids = []
         psutil.cpu_percent(interval=None, percpu=True)
         #maintain a dictionary of vm_id to psutil.Process object
         self.vm_processes = {}

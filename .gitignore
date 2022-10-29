@@ -132,3 +132,7 @@ dmypy.json
 metrics_of_grading.md
 .vscode
 .idea
+
+vmm-reference
+mon_pb2.py
+mon_pb2_grpc.py

@@ -12,13 +12,9 @@ from concurrent import futures
 import logging
 import grpc
 
-# TODO (Visal): Fix this, using hack for now
-import sys
-sys.path.append('common')
 import mon_pb2 as mon_pb2
 import mon_pb2_grpc as mon_pb2_grpc
 from rpc_utils import py2grpcStat
-
 
 
 def monitoring_thread(cpu_mon: CpuMonitor, mem_mon: MemoryMonitor, net_mon: NetworkMonitor) -> None:

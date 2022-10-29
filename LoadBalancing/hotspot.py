@@ -23,7 +23,8 @@ def background_task():
     for host_proxy in rpc_mon_host_proxies:
       # TODO (Vishal): Make sure that xmlrpc servers are only sending 32 bit integers
       # host_proxy example for local host http://localhost:8000/
-      with xmlrpc.client.ServerProxy(host_proxy) as proxy:
+      port = 8000
+      with xmlrpc.client.ServerProxy(host_proxy + f':{port}') as proxy:
         memory = proxy.memory()[0]
         network = proxy.network()[0]
         cpu = proxy.cpu()[0]

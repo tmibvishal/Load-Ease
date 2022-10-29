@@ -6,9 +6,11 @@ from utils import eprint
 
 class NetworkMonitor(Monitor):
 
-    def __init__(self, vm_ids=[]) -> None:
+    def __init__(self, vm_ids=None) -> None:
         super().__init__(vm_ids)
         # get prev values
+        if vm_ids is None:
+            vm_ids = []
         self.prev_host_usage = 0
         self.prev_vm_usage = {vm_id : 0 for vm_id in vm_ids}
 

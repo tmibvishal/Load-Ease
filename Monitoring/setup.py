@@ -4,6 +4,8 @@ import multiprocessing
 import os
 import psutil
 
+from redis_config import rds
+
 vms_db = [
     {
         "vm_id" : "vm1",
@@ -39,7 +41,6 @@ def setup():
         'net' : config.HOST_PEAK_NET_BIT_RATE
     }
 
-    rds = config.rds
     rds.hmset(f"host_configs:{host_id}", host_config)    
     rds.set(f"mon_proxy_addr:{host_id}", f"localhost:{config.MON_PORT}")
 

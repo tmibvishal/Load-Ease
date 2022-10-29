@@ -35,7 +35,12 @@
 - Detect hotspot
 - Choose the suitable VM to migrate and to which host, in case of hotspot. 
 
+## Redis Data Sturcture
 
 
+
+
+## Running Monitoring/server.py
+PYTHONPATH=./ python ./Monitoring/server.py
 
 

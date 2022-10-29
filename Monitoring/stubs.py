@@ -1,6 +1,10 @@
 import os
-import redis
-from config import rds, HOST_ID
+import uuid
+from datetime import datetime
+from redis_config import rds
+from config import HOST_ID
+
+
 
 def get_vm_ids():
     vm_ids = rds.smembers(f"vms_in_host:{HOST_ID}")
@@ -12,6 +16,7 @@ def get_vm_pid(vm_id: str) -> int:
 
 def get_vm_tap_device(vm_id: str) -> str:
     return rds.hget(f"vm_configs:{vm_id}", 'tap_device').decode('utf-8')
+
 
 def get_host_tap_device():
     return rds.hget(f"host_configs:{HOST_ID}", 'tap_device').decode('utf-8')
