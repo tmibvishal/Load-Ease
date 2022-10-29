@@ -36,8 +36,26 @@
 - Choose the suitable VM to migrate and to which host, in case of hotspot. 
 
 ## Redis Data Sturcture
-
-
+- host_id_to_ip -> HashMap -> Host ID (int) to IP (str)
+- host_config:host_id -> HashMap 
+  - 'mem': Integer
+    - Physical Memory of Server
+  - 'cpu': Integer
+    - CPU Cores
+  - 'net': Integer
+    - Bandwidth
+- vms_in_host:{host_id} -> Set
+  - ALl the vm ids
+- vm_configs:{vm_id} -> HashMap
+  - 'mem': Integer
+  - 'cpu': Integer
+  - 'disk': String (Network Disk Info)
+  - 'image_path': Integer
+  - 'host_id': Integer
+    - In which host does this VM exists
+  - 'pid': Integer
+    - Process ID
+  - 'tap_device': String
 
 
 ## Running Monitoring/server.py

@@ -4,6 +4,8 @@ import logging
 import os
 import signal
 import threading
+from LoadBalancing.utils import create_virtual_machine
+from Monitoring.stubs import get_vm_pid
 from config import VMM_REF_DIR
 from memory_monitoring import MemoryMonitor
 
@@ -11,57 +13,42 @@ from memory_monitoring import MemoryMonitor
 class SimpleTest(unittest.TestCase):
     def setUp(self) -> None:
         print(VMM_REF_DIR)
-        self.p = subprocess.Popen(
-                ['./target/debug/vmm-reference', '--kernel', 'path=./bzimage-hello-busybox', '--net', 'tap=vmtap100',
-                 '--memory', 'size_mib=512'], cwd=VMM_REF_DIR, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
-        self.p.terminate()
+        self.vm1_id = create_virtual_machine(mem_mb=512, tap_device='vmtap100')
         self.mem_monitor = MemoryMonitor()
 
     def test_start(self):
         pass
 
     def test_mem_stats(self):
-        # create vm's
-        p2 = subprocess.Popen(
-                ['./target/debug/vmm-reference', '--kernel', 'path=./bzimage-hello-busybox', '--net', 'tap=vmtap100',
-                 '--memory', 'size_mib=512'], cwd=VMM_REF_DIR, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
-        p2.terminate()
+        # Create Second VM
+        vm1_id = self.vm1_id
+        vm2_id = create_virtual_machine(mem_mb=512, tap_device='vmtap100')
 
-        # assert vm is created or not.
-        self.assertIsNotNone(self.p)
-        self.assertIsNotNone(p2)
+        # Assert VM is created or not
+        self.assertTrue(vm1_id != '')
+        self.assertTrue(vm2_id != '')
 
-        # get all vm's ids
-        vm1_id = self.p.pid
-        vm2_id = p2.pid
-
-        print(f"vm1_id: {vm1_id}")
-        print(f"vm2_id: {vm2_id}")
-
-        # allocate the vm-ids
+        # Allocate the vm-ids
         self.mem_monitor.vm_ids.append(vm1_id)
         self.mem_monitor.vm_ids.append(vm2_id)
 
         # now collect stats
         stat = self.mem_monitor.collect_stats()
 
-        # assert stats
-
-        # self.assertTrue(isinstance(stat, tuple))
-        # self.assertTrue(2 == len(stat))
         self.assertIsNotNone(stat[0])
-        # self.assertTrue(isinstance(stat[1], dict))
         self.assertIsNotNone(stat[1])
 
-        # print stats
+        # Print stats
         print(f"stats: {stat}")
 
-        # kill all processes
-        kill(vm1_id)
-        kill(vm2_id)
+        # Kill all VMs
+        pid1 = get_vm_pid(vm1_id)
+        pid2 = get_vm_pid(vm2_id)
+        kill(pid1)
+        kill(pid2)
 
 
-def kill(proc_pid):
+def kill(proc_pid: int) -> None:
     logging.getLogger().setLevel(logging.INFO)
     logging.info(f"kill vm-{proc_pid}")
     os.kill(proc_pid, signal.SIGTERM)
