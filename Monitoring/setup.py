@@ -27,9 +27,9 @@ vms_db = [
 
 
 def setup():
-    # speed_test = speedtest.Speedtest()
-    # tot_bytes = speed_test.download()
-    # config.HOST_PEAK_NET_BIT_RATE = tot_bytes
+    speed_test = speedtest.Speedtest()
+    tot_bytes = speed_test.download()
+    config.HOST_PEAK_NET_BIT_RATE = tot_bytes
 
     # populate redis with host config
     host_id = config.HOST_ID
