@@ -1,4 +1,6 @@
 import logging
+import subprocess
+
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
@@ -21,6 +23,12 @@ def home():
 def create_vm():
   req = request.get_json()
   print(req)
+
+  # Start the VM
+  p = subprocess.Popen(['./target/debug/vmm-reference', '--kernel path=./bzimage-hello-busybox', '--net tap=vmtap100', '--memory size_mib=512'], cwd=VMM_REF_DIR)
+
+
+
   return jsonify({'success': True, 'response': 'Successful', 'vm_id': 1, 'host_proxy': '', 'pid': 1, 'tap_device': '', 'vm_attrs': {}})
 
 
