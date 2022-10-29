@@ -29,6 +29,13 @@ jobs:
         python -m pip install -r LoadBalancing/requirements.txt
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
+    - name: Setup Redis with password
+      # You may pin to the exact commit or the version.
+      # uses: getong/redis-action@1451151d211b1af327efbf4587f82ec5509cc2f6
+      uses: getong/redis-action@v1
+      with:
+        redis version: 7.0-rc3
+
     - name: Lint with flake8
       run: |
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
