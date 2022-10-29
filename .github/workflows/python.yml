@@ -46,8 +46,11 @@ jobs:
     
     - name: compile grpc
       run: |
-        make vmm
         make rpc
+
+    - name: Make VMM
+      run: |
+        make vmm
 
     - name: Test Compile & Run
       run: |

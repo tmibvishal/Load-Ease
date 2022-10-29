@@ -1,10 +1,9 @@
 import logging
-import subprocess
-from flask import Flask, request, jsonify
 import json
+from flask import Flask, request, jsonify
 
-from balancer import create_vm
-
+from LoadBalancing import balancer
+from LoadBalancing.utils import create_virtual_machine
 
 app = Flask(__name__)
 
@@ -26,13 +25,10 @@ def home():
 def create_vm():
   req = request.get_json()
   req = json.loads(req)
-  vm_attrs = create_vm(req)
-  print(vm_attrs)
-  return jsonify({'success': True, 'response': 'Successful', 'vm_attrs': vm_attrs})
   # Start the VM
-  # p = subprocess.Popen(['./target/debug/vmm-reference', '--kernel path=./bzimage-hello-busybox', '--net tap=vmtap100', '--memory size_mib=512'], cwd=VMM_REF_DIR)
-  # return jsonify({'success': True, 'response': 'Successful', 'vm_id': 1, 'host_proxy': '', 'pid': 1, 'tap_device': '', 'vm_attrs': {}})
-
+  # vm_id = create_virtual_machine(mem_mb=req['mem'], tap_device=req['tap_device'], )
+  vm_attrs = balancer.create_vm(req)
+  return jsonify({'success': True, 'response': 'Successful', 'vm_attrs': vm_attrs})
 
 @app.route('/ping')
 def ping():
