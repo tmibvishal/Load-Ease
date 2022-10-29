@@ -5,9 +5,7 @@ from config import rds
 import redis
 from config import rds, HOST_ID
 
-def create_vm() -> int:
-    s = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
-    s2 = uuid.uuid4().hex
+
 
 def get_vm_ids():
     # TODO (ramneek): Get this from redis

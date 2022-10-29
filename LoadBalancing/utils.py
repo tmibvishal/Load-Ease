@@ -1,7 +1,51 @@
+import subprocess
+import uuid
+
 import grpc
 import mon_pb2
 import mon_pb2_grpc
 from rpc_utils import grpcStat2py
+from datetime import datetime
+
+from config import rds, VMM_REF_DIR
+
+import sys
+
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+
+
+def create_vm(mem_mb: int, cpu_cores: int, image_path: str) -> int:
+    # host_id = ?. My host id
+    host_ip = get_ip()
+    host_id = -1
+    d = rds.hgetall('id_to_ip')
+    for k, v in d.items():
+        if v == host_ip:
+            host_id = k
+            break
+    if host_id == -1:
+        eprint(f'This host with {host_ip} is not stored in database. So, can\'t create a VM')
+        return -1
+
+    vm_id = uuid.uuid4().hex + datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+    # proc = subprocess.Popen(
+    #     ['./target/debug/vmm-reference', '--kernel', 'path=./bzimage-hello-busybox', '--net', 'tap=vmtap100',
+    #      '--memory', 'size_mib=512'], cwd=VMM_REF_DIR, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+    proc = subprocess.Popen(
+        ['./target/debug/vmm-reference', '--kernel', f'path={image_path}', '--net', 'tap=vmtap100',
+         '--memory', f'size_mib={mem_mb}', '--vcpus', f'num={cpu_cores}'], cwd=VMM_REF_DIR, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+    proc.terminate()
+    pid = proc.pid
+
+    rds.sadd(f'vms_in_host:{host_id}', vm_id)
+
+    # Insert all config in Redis
+    vm_configs = {'mem': mem_mb, 'cpu': cpu_cores, 'disk': '', 'image_path': image_path}
+    hkey = f'vm_configs:{vm_id}'
+    rds.hset(hkey, mapping=vm_configs)
+
+
 
 
 def get_top_perc(hist, perc=0.90):

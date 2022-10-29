@@ -1,3 +1,5 @@
+import os
+
 import redis
 from threading import Lock
 
@@ -14,4 +16,6 @@ rds = redis.Redis()
 # Run redis on main server
 # We can also use proper distributed databases for better fault tolerance
 
+_script_dir = os.path.dirname(os.path.realpath(__file__))
+VMM_REF_DIR = os.path.join(_script_dir, '../vmm-reference')
 migration_lock = Lock()
