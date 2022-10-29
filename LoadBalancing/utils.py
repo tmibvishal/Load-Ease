@@ -1,3 +1,9 @@
+import grpc
+import mon_pb2
+import mon_pb2_grpc
+from rpc_utils import grpcStat2py
+
+
 def get_top_perc(hist, perc=0.90):
     covered = 0
     for i in range(0, 100, 5):
@@ -6,13 +12,12 @@ def get_top_perc(hist, perc=0.90):
             return (i + 2.5) / 100.0
 
     if covered == 0.0:
-        # hist not filled ? 
+        # hist not filled ?
         return 0.0
     else:
         # 100% usage
         return 1.0
 
-    
 
 def get_mem_swap_hist(hist):
     mem_hist = {i : 0 for i in range(0, 100, 5)}
@@ -31,5 +36,49 @@ def get_mem_swap_hist(hist):
 
     return mem_hist, swap_hist
 
-    
 
+
+import socket
+
+
+def get_ip():
+  s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+  s.settimeout(0)
+  try:
+    # doesn't even have to be reachable
+    s.connect(('10.254.254.254', 1))
+    IP = s.getsockname()[0]
+  except Exception:
+    IP = '127.0.0.1'
+  finally:
+    s.close()
+  return IP
+
+
+def deserialize_rds_dict(hset):
+  ret = {}
+  for k, v in hset.items():
+    k = k.decode()
+    v = v.decode()
+    ret[k] = v
+    if v.isnumeric():
+      ret[k] = int(v)
+  return ret
+
+def deserialize_rds_str_list(lst):
+  ret = []
+  for i in lst:
+    i = i.decode()
+    ret.append(i)
+  return ret
+
+
+def get_stats(proxy):
+  with grpc.insecure_channel(proxy) as channel:
+    stub = mon_pb2_grpc.MonitorStub(channel)
+    response = stub.GetStats(mon_pb2.Empty())
+    return {
+      'cpu': grpcStat2py(response.cpu),
+      'mem': grpcStat2py(response.mem),
+      'net': grpcStat2py(response.swap),
+    }

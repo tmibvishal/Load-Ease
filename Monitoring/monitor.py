@@ -1,13 +1,15 @@
+# TODO: add protect each function using @Lock decorator ?
+
 from typing import List, Tuple, Dict, Any
 import config
 from threading import Thread
 import time
 
 class Monitor:
-    def __init__(self, vm_ids : List[Any]=[]) -> None:
+    def __init__(self, vm_ids : List[str]=[]) -> None:
         # Histogram[i] = percentage number of times usage was in [i, i + 5)
         self.vm_ids = vm_ids
-        self.host_histogram : dict[int : float] = {i : 0 for i in range(0, 100, 5)}
+        self.host_histogram : Dict[int , float] = {i : 0 for i in range(0, 100, 5)}
         self.host_timeseries = []
 
         self.vm_histograms = { vm_id : {i : 0 for i in range(0, 100, 5)} for vm_id in vm_ids }
@@ -16,11 +18,6 @@ class Monitor:
         self.total_intervals = 0
 
 
-    def start(self) -> None:
-        th = Thread(target=self.update, args=(), daemon=True)
-        th.start()
-
-    
     # Inheriting classes implement
     # return (host_usage %, and Dict[vmid : vm usage %])
     # Flaot = Percentage, Ex: 95.2 % -> 95.2 (not 0.952)
@@ -33,27 +30,30 @@ class Monitor:
     def register_vm(self, vm_id) -> None:
         pass
 
-    # Inheriting classes implement
-    # Vm moved to a new host, can remove this vm from monitoring
-    # Clean up the datastructures for this vm
-    def vm_moved(self, vm_id) -> None:
-        pass
-        
+    
+    def update_vm_ids(self, vm_ids: List[str]):
+        self.vm_ids = vm_ids
+        new_histograms = { vm_id : {i : 0 for i in range(0, 100, 5)} for vm_id in vm_ids }
+        new_timeseries = { vm_id : [] for vm_id in vm_ids }
+        for vm_id in vm_ids:
+            if vm_id in self.vm_histograms:
+                assert(vm_id in self.vm_timeseries)
+                new_histograms[vm_id] = self.vm_histograms[vm_id]
+                new_timeseries[vm_id] = self.vm_timeseries[vm_id]
+                
+        self.vm_histograms = new_histograms
+        self.vm_timeseries = new_timeseries
 
-    def update(self) -> None:
-        while True:
-            self.total_intervals += 1
 
-            (host_stat, vm_stats) = self.collect_stats()
 
-            for vm_id, usage in vm_stats.items():
-                self.update_histogram(vm_id, usage)
-                self.update_timeseries(vm_id, usage)
+    def update(self, host_stat: float, vm_stats: Dict[str, float]) -> None:
+        self.total_intervals += 1
+        for vm_id, usage in vm_stats.items():
+            self.update_histogram(vm_id, usage)
+            self.update_timeseries(vm_id, usage)
 
-            self.update_histogram(None, host_stat, host=True)
-            self.update_timeseries(None, host_stat, host=True)
-
-            time.sleep(config.MONITOR_INTERVAL)
+        self.update_histogram(None, host_stat, host=True)
+        self.update_timeseries(None, host_stat, host=True)
 
 
     def update_histogram(self, vm_id, resource_usage, host: bool = False) -> None:
@@ -82,4 +82,5 @@ class Monitor:
 
     def get_vm_stats(self, vm_id: str) -> Tuple[List[float], Dict[int, float]]:
         return self.vm_timeseries[vm_id], self.vm_histograms[vm_id]
+
 

@@ -1,36 +1,69 @@
 import config
+from config import rds, migration_lock
+from utils import get_top_perc, deserialize_rds_dict, deserialize_rds_str_list, get_stats
 from typing import Dict, List, str, Any
-from xmlrpc.client import ServerProxy
-from utils import get_top_perc
+import uuid
 
+# TODO (update all the state in redis in a transaction)
+# TODO (use redis in monitor.py and elsewhere to get the state of the vms)
 class LoadBalancer():
-    def __init__(self, host_configs : Dict[str, Dict[str : Any]]) -> None:
-        self.host_configs = host_configs
-        self.vms_in_host : Dict[str, List[str]] = {host_id : [] for host_id in host_configs.keys()}
+    # Don't initialize like this (moved to redis)
+    # def __init__(self, host_configs : Dict[str, Dict[str : Any]]) -> None:
+    #     self.host_configs = host_configs
+    #     self.vms_in_host : Dict[str, List[str]] = {host_id : [] for host_id in host_configs.keys()}
+    #     self.vm_configs : Dict[str, Dict] = {}
+
+    #     self.mons : Dict[str, ServerProxy] = {
+    #             host_id : ServerProxy(f"http://{host_cfg['ip']}:{config.MON_PORT}/)") 
+    #             for (host_id, host_cfg) in host_configs.items()
+    #         }
+
+    def __init__(self) -> None:
+        self.host_ids : List[str] = []
+        self.host_configs = {}
+        self.vms_in_host : Dict[str, List[str]] = {}
         self.vm_configs : Dict[str, Dict] = {}
+        # self.mons : Dict[str, ServerProxy] = {}
+        self.proxys = {}
 
-        self.mons : Dict[str, ServerProxy] = {
-                host_id : ServerProxy(f"http://{host_cfg['ip']}:{config.MON_PORT}/)") 
-                for (host_id, host_cfg) in host_configs.items()
-            }
 
+    # Assumes caller has migration lock
     def provision(self, vm_config) -> str:
+        # Build latest state from redis
+        self.host_ids = deserialize_rds_str_list(rds.smembers("host_ids"))
+        self.host_configs = {}
+        for host_id in self.host_ids:
+            self.host_configs[host_id] = deserialize_rds_dict(rds.hgetall(f"host_configs:{host_id}"))
+
+        self.vms_in_host = {}
+        self.vm_configs = {}
+        for host_id in self.host_ids:
+            self.vms_in_host[host_id] = deserialize_rds_str_list(rds.smembers(f"vms_in_host:{host_id}"))
+            for vm_id in self.vms_in_host[host_id]:
+                self.vm_configs[vm_id] = deserialize_rds_dict(rds.hgetall(f"vm_configs:{vm_id}"))
+                for key, val in self.vm_configs[vm_id].items():
+                    self.vm_configs[vm_id][key] = int(val)
+
+        self.proxys = {}
+        for host_id in self.host_ids:
+            proxy_addr = rds.get(f"mon_proxy_addr:{host_id}").decode()
+            self.proxys[host_id] = proxy_addr
+
+        self.all_stats = {host_id: get_stats(proxy) for host_id, proxy in self.host_ids.items()}
+
+        # Get best host
         host_id = self.get_best_host(vm_config)
-        # self.vms_in_host[host_id].append(vm_config['id'])
-        # self.vm_configs[vm_config['id']] = vm_config
-        # ^^^ do the above 2 now or after the vm is started ?
-        # will definitely need to do the above two, if another launch_vm request can come
-        # before the prev. vm is actually launched 
+
         return host_id
 
     
     def get_best_host_cpu_mem(self, vm_config):
+        all_stats = self.all_stats
+        mem_host_stats = {host_id: stats['mem'][0] for host_id, stats in all_stats.items()}
+        mem_vm_stats = {host_id: stats['mem'][1] for host_id, stats in all_stats.items()}
 
-        mem_vm_stats = {host_id: host_mon.get_vm_mem_stats() for host_id, host_mon in self.mons}
-        mem_host_stats = {host_id: host_mon.get_host_mem_stats() for host_id, host_mon in self.mons}
-
-        cpu_vm_stats = {host_id: host_mon.get_vm_cpu_stats() for host_id, host_mon in self.mons}
-        cpu_host_stats = {host_id: host_mon.get_host_cpu_stats() for host_id, host_mon in self.mons}
+        cpu_host_stats = {host_id: stats['cpu'][0] for host_id, stats in all_stats.items()}
+        cpu_vm_stats = {host_id: stats['cpu'][1] for host_id, stats in all_stats.items()}
 
         # Try to provision based on SLA
         best_host = None
@@ -117,8 +150,9 @@ class LoadBalancer():
 
     def get_best_host_mem(self, vm_config):
 
-        mem_vm_stats = {host_id: host_mon.get_vm_mem_stats() for host_id, host_mon in self.mons}
-        mem_host_stats = {host_id: host_mon.get_host_mem_stats() for host_id, host_mon in self.mons}
+        all_stats = self.all_stats
+        mem_host_stats = {host_id: stats['mem'][0] for host_id, stats in all_stats.items()}
+        mem_vm_stats = {host_id: stats['mem'][1] for host_id, stats in all_stats.items()}
 
         # Try to provision based on SLA
         best_host = None
@@ -206,8 +240,31 @@ class LoadBalancer():
         return best_host
 
     
+vm_provioner = LoadBalancer()
 
+import vmm_backend
 
+def create_vm(vm_config):
+    with migration_lock:
+        host_id = vm_provioner.get_best_host(vm_config)
+        vm_id = str(uuid.uuid4())
 
+        vm_config['vm_id'] = vm_id
+        vm_config['host_id'] = host_id
+        vm_config['tap_device'] = f'tap:{vm_id}'
+
+        resp = vmm_backend.create_vm_request(vm_config)
+
+        for k,v in resp.items():
+            vm_config[k] = v
+
+        assert 'pid' in vm_config
+        assert 'tap_device' in vm_config
+
+        # Add vm info. in redis
+        rds.hset(f'vm_config:{vm_id}', mapping=vm_config)
+        rds.sadd(f'vms_in_host:{host_id}', vm_id)
         
+    return vm_config
+
 

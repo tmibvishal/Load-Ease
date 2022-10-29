@@ -6,7 +6,7 @@ import psutil
 
 
 class MemoryMonitor(Monitor):
-    def update_time_seris(self, vm_id, resource_usage,
+    def update_time_series(self, vm_id, resource_usage,
                           host: bool = False) -> None:
         # In base class. Circular
         pass
@@ -33,6 +33,9 @@ class MemoryMonitor(Monitor):
         virt_stats = psutil.virtual_memory()
         ram_used = virt_stats.used / virt_stats.total * 0.5
         host_stats = ram_used + used_swap
+
+        # print all vm ids
+        print(f"vm-ids: {self.vm_ids}")
 
         # Getting the VM stats
         vm_stats = {}

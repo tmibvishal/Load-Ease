@@ -11,9 +11,13 @@ class CpuMonitor(Monitor):
         # psutil cpu_percent gives garbage value on the first run
         # so making an initial call to get rid of it
         psutil.cpu_percent(interval=None, percpu=True)
+        #maintain a dictionary of vm_id to psutil.Process object
+        self.vm_processes = {}
+
         for vm_id in self.vm_ids:
             vm_pid = get_vm_pid(vm_id)
-            psutil.Process(vm_pid).cpu_percent(interval=None)/psutil.cpu_count()
+            self.vm_processes[vm_id] = psutil.Process(vm_pid)
+            self.vm_processes[vm_id].cpu_percent(interval=None)
     
     def collect_stats(self) -> Tuple[float, Dict[str, float]]:
         '''
@@ -37,12 +41,23 @@ class CpuMonitor(Monitor):
         # vm_id to cpu usage
         vm_stats = {}
         for vm_id in self.vm_ids:
-            # get the pid of the vm
-            vm_pid = get_vm_pid(vm_id)
             # divide by the number of cores to get the average cpu usage
             # because cpu_percent might return a value > 100
             # as it sums up the cpu usage of all the cores
-            vm_stats[vm_id] = psutil.Process(vm_pid).cpu_percent(interval=None)/psutil.cpu_count()
+            vm_stats[vm_id] = self.vm_processes[vm_id].cpu_percent(interval=None) / psutil.cpu_count()        
         
         return (avg_host_cpu_usage, vm_stats)
+
+    # return the cpu stats, accounting for the effect of network usage
+    def collect_stats_network_effect(self, host_stat_net: float,
+                vm_stats_net: Dict[str, float]) -> Tuple[float, Dict[str, float]]:
+
+        host_stat, vm_stats = self.collect_stats()
+        #calculate the cpu usage accounting for the effect of network usage by host
+        host_cpu_used_for_network = host_stat - sum(vm_stats.values())
+        # add proportion of host_cpu_used_for_network to vm_stats
+        for vm_id in vm_stats:
+            vm_stats[vm_id] += host_cpu_used_for_network * vm_stats_net[vm_id]
+        
+        return (host_stat, vm_stats)
 
