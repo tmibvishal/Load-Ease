@@ -1,3 +1,4 @@
+from setup import setup
 from typing import Dict
 import time
 from threading import Thread
@@ -58,6 +59,7 @@ class MonitoringServicer(mon_pb2_grpc.MonitoringServicer):
 # This script will run in all hosts.
 # And will set up RPC Calls / Other API for the Load balancer to use.
 if __name__ == '__main__':
+    setup()
     logging.basicConfig()
     cpumon = CpuMonitor()
     netmon = NetworkMonitor()
