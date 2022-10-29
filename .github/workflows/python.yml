@@ -36,12 +36,11 @@ jobs:
     
     - name: compile grpc
       run: |
-        cd common
+        make vmm
         make rpc
-        cd ..
 
     - name: Test Compile & Run
       run: |
-        python3 Monitoring/server.py &
+        PYTHONPATH=./ python ./Monitoring/server.py &
         sleep 5
         pkill -9 -f server.py

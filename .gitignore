@@ -134,3 +134,5 @@ metrics_of_grading.md
 .idea
 
 vmm-reference
+mon_pb2.py
+mon_pb2_grpc.py

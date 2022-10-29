@@ -1,6 +1,4 @@
 import os
-
-import redis
 from threading import Lock
 
 # rpc_mon_host_proxys = []  # TODO (Ramneek)
@@ -11,10 +9,6 @@ MON_PORT = 3413
 
 HOTSPOT_THRESHOLD = 0.80
 NUM_INTERVALS_FOR_HOTSPOT_CONF = 10
-
-rds = redis.Redis()
-# Run redis on main server
-# We can also use proper distributed databases for better fault tolerance
 
 _script_dir = os.path.dirname(os.path.realpath(__file__))
 VMM_REF_DIR = os.path.join(_script_dir, '../vmm-reference')

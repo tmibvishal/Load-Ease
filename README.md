@@ -40,5 +40,7 @@
 
 
 
+## Running Monitoring/server.py
+PYTHONPATH=./ python ./Monitoring/server.py
 
 

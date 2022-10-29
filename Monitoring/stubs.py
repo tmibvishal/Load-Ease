@@ -1,9 +1,8 @@
 import os
 import uuid
 from datetime import datetime
-from config import rds
-import redis
-from config import rds, HOST_ID
+from redis_config import rds
+from config import HOST_ID
 
 
 
