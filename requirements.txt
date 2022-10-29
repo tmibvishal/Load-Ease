@@ -3,3 +3,4 @@ grpcio-tools~=1.50.0
 redis~=4.3.4
 psutil~=5.9.3
 flask~=2.2.2
+speedtest-cli~=2.1.3
