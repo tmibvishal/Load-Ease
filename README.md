@@ -56,6 +56,7 @@
   - 'pid': Integer
     - Process ID
   - 'tap_device': String
+  - 'rpc_port': Integer
 
 
 ## Running Monitoring/server.py

@@ -16,7 +16,7 @@ from LoadBalancing.vmm_backend import migrate_vm
 from redis_config import rds
 from LoadBalancing.config import HOTSPOT_THRESHOLD, \
     NUM_INTERVALS_FOR_HOTSPOT_CONF, migration_lock
-from utils import eprint
+from redis_functions import eprint
 
 
 def get_avg(lst: List[float], k: int) -> float:

@@ -1,7 +1,9 @@
+import hashlib
+import os
+import signal
 import subprocess
 import uuid
-import socket
-from typing import Dict, Any, Tuple, List
+from typing import Dict, Tuple, List, Optional
 
 import grpc
 import mon_pb2
@@ -10,10 +12,13 @@ from rpc_utils import grpcStat2py
 from datetime import datetime
 from redis_config import rds
 from config import VMM_REF_DIR
+from redis_functions import eprint, get_ip, get_vm_pid, get_current_host_id, \
+    get_vm_host_id
 
-import sys
 
-from utils import eprint
+def get_int_from_vm_id(vm_id: str):
+    return int(hashlib.sha1(vm_id.encode("utf-8")).hexdigest(), 16)
+
 
 def get_host_id(host_proxy: str) -> int:
     d = rds.hgetall('host_id_to_ip')
@@ -26,26 +31,42 @@ def get_host_id(host_proxy: str) -> int:
         eprint('Host ID is ')
     return host_id
 
-def get_ip():
+
+def add_data_to_redis(host_id: str, vm_id: str, mem_mb: int, cpu_cores: int,
+                      image_path: str, pid: int, tap_device: str, rpc_port: int):
     """
-    :return: Returns the IP Address of current system
+    Insert all config in Redis
+    :param host_id:
+    :param vm_id:
+    :param mem_mb: VM Memory in MB
+    :param cpu_cores:
+    :param image_path:
+    :param pid:
+    :param tap_device:
+    :return: None
     """
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.settimeout(0)
-    try:
-        # doesn't even have to be reachable
-        s.connect(('10.254.254.254', 1))
-        IP = s.getsockname()[0]
-    except Exception:
-        IP = '127.0.0.1'
-    finally:
-        s.close()
-    return IP
+    if mem_mb > 4000:
+        eprint(f'You have created a vm with memory {mem_mb} MB. '
+               f'Make sure that this is intentional')
+    rds.sadd(f'vms_in_host:{host_id}', vm_id)
+    vm_configs = {'mem': mem_mb,
+                  'cpu': cpu_cores,
+                  'disk': '',
+                  'image_path': image_path,
+                  'host_id': host_id,
+                  'pid': pid,
+                  'tap_device': tap_device,
+                  'rpc_port': rpc_port}
+    hkey = f'vm_configs:{vm_id}'
+    rds.hset(hkey, mapping=vm_configs)
+
 
 def create_virtual_machine(mem_mb: int, tap_device: str, cpu_cores: int = 1,
-                           image_path: str = './bzimage-hello-busybox') -> str:
+                           image_path: str = './bzimage-hello-busybox',
+                           vm_id: Optional[str] = None) -> str:
     """
-    :param mem_mb:
+    :param vm_id:
+    :param mem_mb: VM Memory in MB
     :param tap_device:
     :param cpu_cores:
     :param image_path:
@@ -63,7 +84,15 @@ def create_virtual_machine(mem_mb: int, tap_device: str, cpu_cores: int = 1,
                f'So, can\'t create a VM')
         return ''
 
-    vm_id = uuid.uuid4().hex + datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+    if vm_id is None:
+        vm_id = uuid.uuid4().hex + datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+        rpc_port = get_int_from_vm_id(vm_id)
+    else:
+        vm_config = rds.hgetall(f'vm_configs:{vm_id}')
+        rpc_port = vm_config['rpc_port']
+        assert isinstance(rpc_port, int)
+        assert rpc_port == get_int_from_vm_id(vm_id)
+
     # proc = subprocess.Popen(
     #     ['./target/debug/vmm-reference', '--kernel',
     #      'path=./bzimage-hello-busybox', '--net', 'tap=vmtap100',
@@ -81,18 +110,27 @@ def create_virtual_machine(mem_mb: int, tap_device: str, cpu_cores: int = 1,
     proc.terminate()
     pid = proc.pid
 
-    # Insert all config in Redis
-    rds.sadd(f'vms_in_host:{host_id}', vm_id)
-    vm_configs = {'mem': mem_mb,
-                  'cpu': cpu_cores,
-                  'disk': '',
-                  'image_path': image_path,
-                  'host_id': host_id,
-                  'pid': pid,
-                  'tap_device': tap_device}
-    hkey = f'vm_configs:{vm_id}'
-    rds.hset(hkey, mapping=vm_configs)
+
+
+    add_data_to_redis(host_id=host_id,
+                      vm_id=vm_id,
+                      mem_mb=mem_mb,
+                      cpu_cores=cpu_cores,
+                      image_path=image_path,
+                      pid=pid,
+                      tap_device=tap_device,
+                      rpc_port=rpc_port)
     return vm_id
+
+
+def stop_virtual_machine(vm_id: str):
+    pid = get_vm_pid(vm_id)
+    cur_host_id = get_current_host_id()
+    vm_host_id = get_vm_host_id(vm_id)
+    if cur_host_id == vm_host_id:
+        os.kill(pid, signal.SIGTERM)
+    else:
+        eprint(f'{vm_id} is not on current host. Can\'t close the VM')
 
 
 def get_top_perc(hist, perc=0.90):

@@ -1,0 +1,2 @@
+CREATE_END_POINT = 'create'
+SNAPSHOT_END_POINT = 'snapshot'
