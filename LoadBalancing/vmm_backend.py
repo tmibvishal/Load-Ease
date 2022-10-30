@@ -1,7 +1,7 @@
 import requests
-from config import rds
+from redis_config import rds
 import json
-from utils import deserialize_rds_dict, deserialize_rds_str_list
+from LoadBalancing.utils import deserialize_rds_dict, deserialize_rds_str_list
 import uuid
 
 CREATE_END_POINT = 'create'
@@ -26,8 +26,6 @@ def create_vm_request(host_id, vm_config):
     resp = json.loads(resp)
     print(resp)
     return resp
-
-
 
 
 def migrate_vm(vm_id, new_host_id):

@@ -1,6 +1,8 @@
 import subprocess
 import uuid
 import socket
+from typing import Dict, Any, Tuple, List
+
 import grpc
 import mon_pb2
 import mon_pb2_grpc
@@ -13,6 +15,16 @@ import sys
 
 from utils import eprint
 
+def get_host_id(host_proxy: str) -> int:
+    d = rds.hgetall('host_id_to_ip')
+    host_id = -1
+    for k, v in d.items():
+        if v.decode() == host_proxy:
+            host_id = k
+            break
+    if host_id == -1:
+        eprint('Host ID is ')
+    return host_id
 
 def get_ip():
     """
@@ -135,7 +147,9 @@ def deserialize_rds_str_list(lst):
     return ret
 
 
-def get_stats(proxy):
+def get_stats(proxy: str) -> \
+        Dict[str, Tuple[Tuple[List[float], Dict[int, float]],
+                        Dict[str, Tuple[List[float], Dict[int, float]]]]]:
     with grpc.insecure_channel(proxy) as channel:
         stub = mon_pb2_grpc.MonitorStub(channel)
         response = stub.GetStats(mon_pb2.Empty())
