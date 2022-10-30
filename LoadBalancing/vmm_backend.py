@@ -1,11 +1,14 @@
 import requests
-from config import rds
+
+from common_config import CREATE_END_POINT, SNAPSHOT_END_POINT
+from redis_config import rds
 import json
-from utils import deserialize_rds_dict, deserialize_rds_str_list
+from LoadBalancing.utils import deserialize_rds_dict, \
+    deserialize_rds_str_list, \
+    add_data_to_redis
 import uuid
 
-CREATE_END_POINT = 'create'
-SNAPSHOT_END_POINT = 'snapshot'
+from redis_functions import get_current_host_id, get_vm_id_with_rpc_port
 
 
 def create_vm_request(host_id, vm_config):
@@ -28,8 +31,6 @@ def create_vm_request(host_id, vm_config):
     return resp
 
 
-
-
 def migrate_vm(vm_id, new_host_id):
 
     vm_config = deserialize_rds_dict(rds.hgetall(f'vm_config:{vm_id}'))
@@ -48,9 +49,13 @@ def migrate_vm(vm_id, new_host_id):
         'resume' : False
     }
 
+    assert vm_id == get_vm_id_with_rpc_port(rpc_port)
+
     resp = requests.post(f'{vmm_proxy_addr}/{SNAPSHOT_END_POINT}', json=request).json()
     resp = json.loads(resp)
     print(resp)
+
+    # TODO: Delete all the previous VM data from redis
 
 
     # start vm in new host
@@ -65,7 +70,19 @@ def migrate_vm(vm_id, new_host_id):
     resp = requests.post(f'{vmm_proxy_addr}/{CREATE_END_POINT}', json=request).json()
     resp = json.loads(resp)
 
+    rds.hset(name='rpc_ports', key=vm_id, value=rpc_port)
+
     print(resp)
+
+    # TODO: Add all the new VM data from redis
+    add_data_to_redis(host_id=new_host_id,
+                      vm_id=vm_id,
+                      mem_mb=vm_config['mem'],
+                      cpu_cores=vm_config['cpu'],
+                      image_path=vm_config['image_path'],
+                      pid=vm_config['pid'],
+                      tap_device=vm_config['tap_device'],
+                      rpc_port=rpc_port)
 
     # new_rpc_port = resp['rpc_port']
 

@@ -1,8 +1,8 @@
 from typing import Any, Dict, List, Tuple, Union
 import config
 from monitor import Monitor
-from stubs import get_vm_tap_device,get_host_tap_device
-from utils import eprint
+from redis_functions import eprint, get_host_tap_device, get_vm_tap_device
+
 
 class NetworkMonitor(Monitor):
 

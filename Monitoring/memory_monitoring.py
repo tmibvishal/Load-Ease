@@ -1,5 +1,5 @@
-from stubs import get_vm_pid
-from utils import eprint
+from redis_functions import get_vm_pid
+from redis_functions import eprint
 from monitor import Monitor
 from typing import Any, Dict, List, Tuple, Union
 import psutil

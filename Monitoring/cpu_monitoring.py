@@ -1,8 +1,8 @@
 import psutil
-from stubs import get_vm_pid
 from monitor import Monitor
 from typing import Tuple, Dict
 
+from redis_functions import get_vm_pid
 
 
 class CpuMonitor(Monitor):

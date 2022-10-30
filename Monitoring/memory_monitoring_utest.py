@@ -5,9 +5,9 @@ import os
 import signal
 import threading
 from LoadBalancing.utils import create_virtual_machine
-from Monitoring.stubs import get_vm_pid
 from config import VMM_REF_DIR
 from memory_monitoring import MemoryMonitor
+from redis_functions import get_vm_pid
 
 
 class SimpleTest(unittest.TestCase):
