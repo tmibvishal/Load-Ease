@@ -1,10 +1,10 @@
 from redis_config import rds
-from config import migration_lock
+from LoadBalancing.config import migration_lock
 from LoadBalancing.utils import get_top_perc, deserialize_rds_dict, \
     deserialize_rds_str_list, get_stats
 from typing import Dict, List, Any
 import uuid
-import vmm_backend
+import LoadBalancing.vmm_backend
 
 # TODO (update all the state in redis in a transaction)
 # TODO (use redis in monitor.py and elsewhere to get the state of the vms)
