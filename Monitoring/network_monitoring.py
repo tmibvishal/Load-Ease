@@ -1,7 +1,7 @@
 from typing import Any, Dict, List, Tuple, Union
-import config
-from monitor import Monitor
-from redis_functions import eprint, get_host_tap_device, get_vm_tap_device
+from LoadBalancing.Monitoring import config
+from LoadBalancing.Monitoring.monitor import Monitor
+from LoadBalancing.redis_functions import eprint, get_host_tap_device, get_vm_tap_device
 
 
 class NetworkMonitor(Monitor):

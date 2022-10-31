@@ -1,7 +1,7 @@
 # TODO: add protect each function using @Lock decorator ?
 
 from typing import List, Tuple, Dict, Any
-import config
+import LoadBalancing.Monitoring.config
 from threading import Thread
 import time
 

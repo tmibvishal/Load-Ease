@@ -1,11 +1,8 @@
 import socket
 import sys
-import os
-import uuid
-from datetime import datetime
 from typing import List
 
-from redis_config import rds
+from LoadBalancing.redis_config import rds
 
 
 def eprint(*args, **kwargs):
@@ -65,8 +62,9 @@ def get_vm_ids() -> List[str]:
 
 
 def get_vm_pid(vm_id: str) -> int:
-    a = int(rds.hget(f"vm_configs:{vm_id}", 'pid'))
-    return a
+    # a = int(rds.hget(f"vm_configs:{vm_id}", 'pid'))
+    # return a
+    return int(vm_id)
 
 
 def get_vm_tap_device(vm_id: str) -> str:

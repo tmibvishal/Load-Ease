@@ -1,8 +1,8 @@
 import psutil
-from monitor import Monitor
+from LoadBalancing.Monitoring.monitor import Monitor
 from typing import Tuple, Dict
 
-from redis_functions import get_vm_pid
+from LoadBalancing.redis_functions import get_vm_pid
 
 
 class CpuMonitor(Monitor):

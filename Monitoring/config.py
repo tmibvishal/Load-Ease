@@ -1,7 +1,4 @@
-import uuid
-import os
-
-from redis_functions import get_current_host_id
+from LoadBalancing.redis_functions import get_current_host_id
 
 MON_PORT = 3413 # TODO (ramneek) sync with LoadBalancing/config.py
 
@@ -15,7 +12,7 @@ TIME_SERIES_INTERVAL = MONITOR_INTERVAL * TIME_SERIES_LEN
 HOST_ID = get_current_host_id()
 
 # TODO (vishal): Pass this using OS parameters
+VMM_REF_DIR = '/home/saurav/vmm-reference'
 # VMM_REF_DIR = os.environ['VMM_REF']
-# '/home/vishal/col732/lab3/vmm-reference'
-_script_dir = os.path.dirname(os.path.realpath(__file__))
-VMM_REF_DIR = os.path.join(_script_dir, '../vmm-reference')
+# _script_dir = os.path.dirname(os.path.realpath(__file__))
+# VMM_REF_DIR = os.path.join(_script_dir, '../vmm-reference')

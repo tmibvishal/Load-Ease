@@ -8,11 +8,10 @@ def show_resource_util():
     net_usage = 1000
     data_unit = "MB"
 
-    total_ids=7
-    vms_id = list(range(total_ids));
-    vms_cpu_usage = [20 for i in range(total_ids)]
-    vms_mem_usage = [80 for i in range(total_ids)]
-    vms_net_usage = [100 for i in range(total_ids)];
+    vms_id = [0,1,2,3];
+    vms_cpu_usage = [20.00,30.00,40.00,50.00];
+    vms_mem_usage = [80.00,85.55,90.50,12.6];
+    vms_net_usage = [100,200,300,128];
 
     return render_template('resource_usage.html',avg_cpu_usage=cpu_percentage, mem_usage=memory_percentage,net_usage=net_usage,data_unit=data_unit,vms_id=vms_id, vms_cpu_usage=vms_cpu_usage,vms_mem_usage=vms_mem_usage, vms_net_usage=vms_net_usage,vm_num=len(vms_id))
 
