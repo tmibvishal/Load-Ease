@@ -43,4 +43,4 @@ def ping():
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
-    app.run(host='0.0.0.0', debug=True, port=8000, threaded=True)
+    app.run(host='0.0.0.0', debug=True, port=5010, threaded=True)
