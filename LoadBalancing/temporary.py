@@ -10,7 +10,7 @@ app = Flask(__name__)
 def home():
     return 'Welcome to main host. With Regards - Load Balancing Team'
 
-
+PORT = 8011
 @app.route('/create', methods=['POST'])
 def create_vm():
     req = request.get_json()
@@ -24,10 +24,25 @@ def create_vm():
     #     'tap_device': 'vm_tap_100',
     #     'resume': False
     # }
-    resp = requests.post(f'10.237.23.38:8011/create', json=req).json()
+    resp = requests.post(f'10.237.23.38:{PORT}/create', json=req).json()
     resp = json.loads(resp)
     print(resp)
     # resp should be a dictionary of format {'rpc_port': , 'pid'}
+    if resp:
+        return jsonify(
+            {'success': True, 'response': 'Successful', 'vm_attrs': {}})
+    else:
+        return jsonify(
+            {'success': False, 'response': 'Successful', 'vm_attrs': {}})
+
+@app.route('/snapshot', methods=['POST'])
+def create_vm():
+    req = request.get_json()
+    req = json.loads(req)
+    print(req)
+    resp = requests.post(f'10.237.23.38:{PORT}/snapshot', json=req).json()
+    resp = json.loads(resp)
+    print(resp)
     if resp:
         return jsonify(
             {'success': True, 'response': 'Successful', 'vm_attrs': {}})
