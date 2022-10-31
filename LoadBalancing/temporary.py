@@ -26,14 +26,7 @@ def create_vm():
     # }
     resp = requests.post(f'10.237.23.38:{PORT}/create', json=req).json()
     resp = json.loads(resp)
-    print(resp)
-    # resp should be a dictionary of format {'rpc_port': , 'pid'}
-    if resp:
-        return jsonify(
-            {'success': True, 'response': 'Successful', 'vm_attrs': {}})
-    else:
-        return jsonify(
-            {'success': False, 'response': 'Successful', 'vm_attrs': {}})
+    return resp
 
 @app.route('/snapshot', methods=['POST'])
 def create_vm():
@@ -43,12 +36,7 @@ def create_vm():
     resp = requests.post(f'10.237.23.38:{PORT}/snapshot', json=req).json()
     resp = json.loads(resp)
     print(resp)
-    if resp:
-        return jsonify(
-            {'success': True, 'response': 'Successful', 'vm_attrs': {}})
-    else:
-        return jsonify(
-            {'success': False, 'response': 'Successful', 'vm_attrs': {}})
+    return resp
 
 
 @app.route('/ping')
