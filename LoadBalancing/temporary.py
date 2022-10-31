@@ -17,14 +17,14 @@ def create_vm():
     req = json.loads(req)
     print(req)
     # req['mem'], req['cpu'], req['disk'], req['image_path']
-    new_req = {
-        'cpu_snapshot_path': './cpu_snap.snap',
-        'memory_snapshot_path': './mem_snap.snap',
-        'kernel_path': './bzimage-hello-busybox',
-        'tap_device': 'vm_tap_100',
-        'resume': False
-    }
-    resp = requests.post(f'10.237.23.38:8011/create', json=new_req).json()
+    # new_req = {
+    #     'cpu_snapshot_path': './cpu_snap.snap',
+    #     'memory_snapshot_path': './mem_snap.snap',
+    #     'kernel_path': './bzimage-hello-busybox',
+    #     'tap_device': 'vm_tap_100',
+    #     'resume': False
+    # }
+    resp = requests.post(f'10.237.23.38:8011/create', json=req).json()
     resp = json.loads(resp)
     print(resp)
     # resp should be a dictionary of format {'rpc_port': , 'pid'}
