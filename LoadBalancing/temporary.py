@@ -1,20 +1,29 @@
 import logging
+import os
 import json
 from flask import Flask, request, jsonify
 import requests
+from urllib3.exceptions import InsecureRequestWarning
+from urllib3 import disable_warnings
 
+disable_warnings(InsecureRequestWarning)
 app = Flask(__name__)
+session = requests.Session()
+session.trust_env = False
 
 
 @app.route('/')
 def home():
     return 'Welcome to main host. With Regards - Load Balancing Team'
 
-PORT = 8011
+
+PORT = 8012
+
+
 @app.route('/create', methods=['POST'])
 def create_vm():
     req = request.get_json()
-    req = json.loads(req)
+    # req = json.loads(req)
     print(req)
     # req['mem'], req['cpu'], req['disk'], req['image_path']
     # new_req = {
@@ -24,19 +33,20 @@ def create_vm():
     #     'tap_device': 'vm_tap_100',
     #     'resume': False
     # }
-    resp = requests.post(f'10.237.23.38:{PORT}/create', json=req).json()
-    resp = json.loads(resp)
-    return resp
+    resp = session.post(f'http://10.237.23.38:{PORT}/create', json=req,
+                        verify=False)
+    return resp.json()
+
 
 @app.route('/snapshot', methods=['POST'])
-def create_vm():
+def snapshot():
     req = request.get_json()
-    req = json.loads(req)
+    # req = json.loads(req)
     print(req)
-    resp = requests.post(f'10.237.23.38:{PORT}/snapshot', json=req).json()
-    resp = json.loads(resp)
-    print(resp)
-    return resp
+    os.environ['NO_PROXY'] = 'http://10.237.23.38'
+    resp = session.post(f'http://10.237.23.38:{PORT}/snapshot', json=req,
+                        verify=False)
+    return resp.json()
 
 
 @app.route('/ping')
