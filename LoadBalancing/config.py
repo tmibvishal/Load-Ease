@@ -11,5 +11,4 @@ HOTSPOT_THRESHOLD = 0.80
 NUM_INTERVALS_FOR_HOTSPOT_CONF = 10
 
 _script_dir = os.path.dirname(os.path.realpath(__file__))
-VMM_REF_DIR = os.path.join(_script_dir, '../vmm-reference')
 migration_lock = Lock()

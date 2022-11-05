@@ -1,9 +1,8 @@
 from redis_functions import get_vm_ids
 from setup import setup
-from typing import Dict
 import time
 from threading import Thread
-from config import MON_PORT, MONITOR_INTERVAL, HOST_ID
+from config import MON_PORT, MONITOR_INTERVAL
 from cpu_monitoring import CpuMonitor
 from network_monitoring import NetworkMonitor
 from memory_monitoring import MemoryMonitor

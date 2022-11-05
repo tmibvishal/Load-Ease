@@ -37,6 +37,7 @@ def get_vm_id_with_rpc_port(rpc_port: int) -> str:
             vm_id = k
     return vm_id
 
+
 def get_vm_host_id(vm_id: str) -> int:
     d = rds.hgetall(name=f'vm_configs:{vm_id}')
     host_id = d['host_id']
@@ -44,18 +45,33 @@ def get_vm_host_id(vm_id: str) -> int:
     return host_id
 
 
-def get_current_host_id():
+def get_new_host_id() -> int:
+    d = rds.hgetall(f'host_id_to_ip')
+    existing_host_ids = []
+    for k, v in d.items():
+        existing_host_ids.append(int(k))
+    existing_host_ids = sorted(existing_host_ids + [0])
+    for i in range(1, len(existing_host_ids)):
+        if existing_host_ids[i] > existing_host_ids[i - 1] + 1:
+            return existing_host_ids[i - 1] + 1
+    return existing_host_ids[-1] + 1
+
+
+def get_current_host_id(check_existence: bool = False) -> int:
     host_ip = get_ip()
-    host_id = -1
-    d = rds.hgetall(f'mon_proxy_addr')
+    host_ids = []
+    d = rds.hgetall(f'host_id_to_ip')
     for k, v in d.items():
         if v == host_ip:
-            host_id = k
-            break
-    if host_id == -1:
-        eprint(f'This host with {host_ip} is not stored in database. '
-               f'So, can\'t create a VM')
-    return host_id
+            host_ids.append(int(k))
+    assert len(host_ids) <= 1, 'There is some issue with the system.' \
+                               '2 host ids are there for same system.'
+    if len(host_ids) == 0:
+        if check_existence:
+            eprint(f'This host with {host_ip} is not stored in database. '
+                   f'So, can\'t create a VM')
+        return -1
+    return host_ids[0]
 
 
 def get_vm_ids() -> List[str]:
