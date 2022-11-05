@@ -37,9 +37,9 @@ def clean(host_id: int) -> None:
     for vm_id in st:
         d = rds.hgetall(f'vm_configs:{vm_id}')
         pid = int(d['pid'])
-        proc = psutil.Process(pid)
-        if 'vmm-reference' in proc.name():
-            proc.terminate()
+        # proc = psutil.Process(pid)
+        # if 'vmm-reference' in proc.name():
+        #    proc.terminate()
         rds.delete(f'vm_configs:{vm_id}')
     rds.delete(f'mon_proxy_addr:{host_id}')
     rds.delete(f'host_configs:{host_id}')

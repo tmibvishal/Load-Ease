@@ -83,3 +83,7 @@ class Monitor:
 
     def get_vm_stats(self, vm_id: str) -> Tuple[List[float], Dict[int, float]]:
         return self.vm_timeseries[vm_id], self.vm_histograms[vm_id]
+
+    def get_all_vm_stats(self, vm_ids: List[str]):
+        return {vm_id : self.get_vm_stats(vm_id) for vm_id in vm_ids}
+

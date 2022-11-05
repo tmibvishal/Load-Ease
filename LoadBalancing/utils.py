@@ -145,8 +145,10 @@ def get_mem_swap_hist(hist):
 def deserialize_rds_dict(hset):
     ret = {}
     for k, v in hset.items():
-        k = k.decode()
-        v = v.decode()
+        if isinstance(k, bytes):
+            k = k.decode()
+        if isinstance(v, bytes):
+            v = v.decode()
         ret[k] = v
         if v.isnumeric():
             ret[k] = int(v)

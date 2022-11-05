@@ -7,6 +7,7 @@ from typing import Dict, List, Any
 import uuid
 import LoadBalancing.vmm_backend
 
+
 # TODO (update all the state in redis in a transaction)
 # TODO (use redis in monitor.py and elsewhere to get the state of the vms)
 class LoadBalancer():
@@ -141,7 +142,7 @@ class LoadBalancer():
 
             peak_host_cpu_usage = get_top_perc(cpu_host_stats[host_id][1], 0.95)
             leftover_peak_cpu = self.host_configs[host_id]['cpu'] * (
-                        1 - peak_host_cpu_usage)
+                    1 - peak_host_cpu_usage)
 
             if peak_host_mem_usage >= 0.5:
                 # this means swap was used and memory was full 

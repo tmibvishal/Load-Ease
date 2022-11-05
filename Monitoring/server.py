@@ -43,9 +43,12 @@ class MonitoringServicer(mon_pb2_grpc.MonitoringServicer):
         self.mem_mon = mem_mon
 
     def GetStats(self, request, context):
-        cpu_stat = py2grpcStat(self.cpu_mon.get_host_stats(), self.cpu_mon.get_vm_stats())
-        net_stat = py2grpcStat(self.net_mon.get_host_stats(), self.net_mon.get_vm_stats())
-        mem_stat = py2grpcStat(self.mem_mon.get_host_stats(), self.mem_mon.get_vm_stats())
+
+        vm_ids = get_vm_ids()
+        cpu_stat = py2grpcStat(self.cpu_mon.get_host_stats(), self.cpu_mon.get_all_vm_stats(vm_ids))
+        net_stat = py2grpcStat(self.net_mon.get_host_stats(), self.net_mon.get_all_vm_stats(vm_ids))
+        mem_stat = py2grpcStat(self.mem_mon.get_host_stats(), self.mem_mon.get_all_vm_stats(vm_ids))
+
         return mon_pb2.Stats(cpu=cpu_stat, net=net_stat, mem=mem_stat)
 
 
