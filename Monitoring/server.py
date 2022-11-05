@@ -30,11 +30,18 @@ def monitoring_thread(cpu_mon: CpuMonitor, mem_mon: MemoryMonitor, net_mon: Netw
         host_stat, vm_stats = mem_mon.collect_stats()
         mem_mon.update(host_stat, vm_stats)
 
+        print('mem_stats:', vm_stats, host_stat)
+
+
         host_stat, vm_stats = net_mon.collect_stats()
         net_mon.update(host_stat, vm_stats)
 
+        print('net_stats:', vm_stats, host_stat)
+
         host_stat, vm_stats = cpu_mon.collect_stats_network_effect(host_stat, vm_stats)
         cpu_mon.update(host_stat, vm_stats)
+
+        print('cpu_stats:', vm_stats, host_stat)
         
         time.sleep(MONITOR_INTERVAL)
 
@@ -63,6 +70,11 @@ def test():
     cpumon = CpuMonitor()
     netmon = NetworkMonitor()
     memmon = MemoryMonitor()
+
+    th = Thread(target=monitoring_thread, args=(cpumon, memmon, netmon), daemon=True)
+    th.start()
+
+    time.sleep(3)
 
     msvsr = MonitoringServicer(cpumon, memmon, netmon)
     # server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
@@ -98,13 +110,15 @@ def test():
     print(stats.keys())
 
     vm_provioner = LoadBalancer()
-    vm_provioner.provision({
+    host_id = vm_provioner.provision({
         'mem' : 1024 * 1024 * 256,
         'cpu' : 2,
         'net' : 1024 * 1024 * 4,
         'vm_id' : '3',
         'tap_device' : 'vmtap103',
     })
+
+    print(host_id)
 
 
     exit(0)

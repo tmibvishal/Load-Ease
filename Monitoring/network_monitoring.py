@@ -1,7 +1,7 @@
 from typing import Any, Dict, List, Tuple, Union
 import config
 from monitor import Monitor
-from redis_functions import eprint, get_host_tap_device, get_vm_tap_device
+from redis_functions import eprint, get_host_net_device, get_vm_tap_device
 
 
 class NetworkMonitor(Monitor):
@@ -19,7 +19,7 @@ class NetworkMonitor(Monitor):
         # add try catch
         # use stubs for get vm tap device
         try:
-            hostTap = get_host_tap_device()
+            hostTap = get_host_net_device()
             f_rx = open("/sys/class/net/{}/statistics/rx_packets".format(hostTap), "r")
             f_tx = open("/sys/class/net/{}/statistics/tx_packets".format(hostTap), "r")
             host_usage = float(f_rx.read()) + float(f_tx.read()) - self.prev_host_usage

@@ -3,7 +3,7 @@ import os
 
 from redis_functions import get_current_host_id
 
-MON_PORT = 3413 # TODO (ramneek) sync with LoadBalancing/config.py
+MON_PORT = 3413
 
 HOST_PEAK_NET_BIT_RATE = 1024 * 1024 * 50  # 50 MBps, setup will overwrite this
 

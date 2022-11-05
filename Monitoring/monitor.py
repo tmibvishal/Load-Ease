@@ -64,10 +64,10 @@ class Monitor:
         for interval in range(0, 100, 5):
             if resource_usage >= interval and resource_usage < interval + 5:
                 hist[interval] = (hist[interval] * (
-                            self.total_intervals - 1) + 1) / self.total_intervals
+                        self.total_intervals - 1) + 1) / self.total_intervals
             else:
                 hist[interval] = (hist[interval] * (
-                            self.total_intervals - 1)) / self.total_intervals
+                        self.total_intervals - 1)) / self.total_intervals
 
     def update_timeseries(self, vm_id, resource_usage,
                           host: bool = False) -> None:
@@ -79,18 +79,17 @@ class Monitor:
             timeseries.pop(0)
 
     def get_host_stats(self) -> Tuple[List[float], Dict[int, float]]:
-        return Monitor.get_random_timeseries(max=0.4), Monitor.get_random_histogram(max=0.4)
+        # return Monitor.get_random_timeseries(max=0.4), Monitor.get_random_histogram(max=0.4)
         return self.host_timeseries, self.host_histogram
 
     def get_vm_stats(self, vm_id: str) -> Tuple[List[float], Dict[int, float]]:
         return self.vm_timeseries[vm_id], self.vm_histograms[vm_id]
 
     def get_all_vm_stats(self, vm_ids: List[str]):
-        n = len(vm_ids)
-        max = 1 / n
-        return {vm_id : (Monitor.get_random_timeseries(max), Monitor.get_random_histogram(max)) for vm_id in vm_ids}
-        return {vm_id : self.get_vm_stats(vm_id) for vm_id in vm_ids}
-
+        # n = len(vm_ids)
+        # max = 1 / n
+        # return {vm_id: (Monitor.get_random_timeseries(max), Monitor.get_random_histogram(max)) for vm_id in vm_ids}
+        return {vm_id: self.get_vm_stats(vm_id) for vm_id in vm_ids}
 
     @staticmethod
     def get_random_timeseries(max=0.2):
@@ -100,4 +99,4 @@ class Monitor:
     @staticmethod
     def get_random_histogram(max=0.2):
         import random
-        return {i : max*random.random() for i in range(0, 100, 5)}
+        return {i: max * random.random() for i in range(0, 100, 5)}

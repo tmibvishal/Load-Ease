@@ -76,7 +76,6 @@ def get_current_host_id(check_existence: bool = False) -> int:
 
 def get_vm_ids() -> List[str]:
     host_id = get_current_host_id()
-    print(host_id)
     vm_ids = rds.smembers(f"vms_in_host:{host_id}")
     return [vm_id for vm_id in vm_ids]
 
@@ -87,13 +86,13 @@ def get_vm_pid(vm_id: str) -> int:
 
 
 def get_vm_tap_device(vm_id: str) -> str:
-    a = rds.hget(f"vm_configs:{vm_id}", 'tap_device').decode('utf-8')
+    a = rds.hget(f"vm_configs:{vm_id}", 'tap_device')
     return a
 
 
-def get_host_tap_device() -> str:
+def get_host_net_device() -> str:
     host_id = get_current_host_id()
-    tap_device = rds.hget(f"host_configs:{host_id}", 'tap_device').decode('utf-8')
+    tap_device = rds.hget(f"host_configs:{host_id}", 'net_device')
     return tap_device
 
 # Add other things needed, this will be replaced later,

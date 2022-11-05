@@ -35,7 +35,7 @@ class MemoryMonitor(Monitor):
         host_stats = ram_used + used_swap
 
         # print all vm ids
-        print(f"vm-ids: {self.vm_ids}")
+        # print(f"vm-ids: {self.vm_ids}")
 
         # Getting the VM stats
         vm_stats = {}
@@ -52,7 +52,7 @@ class MemoryMonitor(Monitor):
         vm_info = {}
         try:
             proc = psutil.Process(pid)
-            assert 'vmm-reference' in proc.name(), \
+            assert '' in proc.name(), \
                 f'PID {pid} doesn\'t represent a VM but rather {proc.name()}.' \
                 f' Your vm_id to process id mapping is wrong'
             temp = proc.as_dict(

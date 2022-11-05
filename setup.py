@@ -10,22 +10,34 @@ from SnapshotTeam.main import start_vms
 from redis_config import rds
 from redis_functions import get_new_host_id, get_current_host_id
 
+
+import os
+
+
+def pgrep(pattern):
+    """return a list with process IDs which matches the selection criteria"""
+    args = ["pgrep", str(pattern)]
+    out = os.popen(" ".join(args)).read().strip()
+    return list(map(int, out.splitlines()))
+
+
+
 vms_db = [
     {
-        'mem': 1024 * 1024 * 256,
+        'mem': 1024 * 1024 * 1024 * 4,
         'cpu': 2,
         'net': 1024 * 1024 * 1,
         'tap_device': 'vmtap1',
         'vm_id' : 0,
-        'pid' : os.getpid(),
+        'pid' : int(pgrep('firefox')[0])
     },
     {
-        'mem': 1024 * 1024 * 256,
+        'mem': 1024 * 1024 * 1024 * 4,
         'cpu': 2,
         'net': 1024 * 1024 * 1,
         'tap_device': 'vmtap2',
         'vm_id' : 1,
-        'pid' : os.getpid()
+        'pid' : int(pgrep('redis')[0])
     },
 ]
 
@@ -71,7 +83,8 @@ def test_setup():
     host_config = {
         'cpu': multiprocessing.cpu_count(),
         'mem': psutil.virtual_memory().total,
-        'net': config.HOST_PEAK_NET_BIT_RATE
+        'net': config.HOST_PEAK_NET_BIT_RATE,
+        'net_device' : 'eth0',
     }
 
     vm_listener_port = 5015
@@ -109,7 +122,8 @@ def setup():
     host_config = {
         'cpu': multiprocessing.cpu_count(),
         'mem': psutil.virtual_memory().total,
-        'net': config.HOST_PEAK_NET_BIT_RATE
+        'net': config.HOST_PEAK_NET_BIT_RATE,
+        'net_device' : 'eth0', # TODO get actual host net device
     }
 
     vm_listener_port = 5015
