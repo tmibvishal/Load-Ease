@@ -1,6 +1,6 @@
 import mon_pb2
 
-def py2grpcStat(host_stats, vm_stats):
+def py2grpcStat(host_stats, vm_stats_py):
     time_series, hist = host_stats
     host_stat = mon_pb2.HostStat(
         histogram = hist,
@@ -9,7 +9,7 @@ def py2grpcStat(host_stats, vm_stats):
 
     vm_stats = []
 
-    for vm_id, (time_series, hist) in vm_stats.items():
+    for vm_id, (time_series, hist) in vm_stats_py.items():
         vm_stats.append(mon_pb2.VmStat(vm_id= vm_id, histogram = hist, timeseries = time_series))
 
     stat = mon_pb2.Stat(host = host_stat)

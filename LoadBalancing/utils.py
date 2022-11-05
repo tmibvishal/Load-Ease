@@ -1,5 +1,6 @@
 import hashlib
 import os
+import pdb
 import signal
 import subprocess
 import uuid
@@ -11,7 +12,7 @@ import mon_pb2_grpc
 from rpc_utils import grpcStat2py
 from datetime import datetime
 from redis_config import rds
-from config import VMM_REF_DIR
+from common_config import VMM_REF_DIR
 from redis_functions import eprint, get_ip, get_vm_pid, get_current_host_id, \
     get_vm_host_id
 
@@ -20,19 +21,7 @@ def get_int_from_vm_id(vm_id: str):
     return int(hashlib.sha1(vm_id.encode("utf-8")).hexdigest(), 16)
 
 
-def get_host_id(host_proxy: str) -> int:
-    d = rds.hgetall('host_id_to_ip')
-    host_id = -1
-    for k, v in d.items():
-        if v.decode() == host_proxy:
-            host_id = k
-            break
-    if host_id == -1:
-        eprint('Host ID is ')
-    return host_id
-
-
-def add_data_to_redis(host_id: str, vm_id: str, mem_mb: int, cpu_cores: int,
+def add_data_to_redis(host_id: int, vm_id: str, mem_mb: int, cpu_cores: int,
                       image_path: str, pid: int, tap_device: str, rpc_port: int):
     """
     Insert all config in Redis
@@ -45,9 +34,6 @@ def add_data_to_redis(host_id: str, vm_id: str, mem_mb: int, cpu_cores: int,
     :param tap_device:
     :return: None
     """
-    if mem_mb > 4000:
-        eprint(f'You have created a vm with memory {mem_mb} MB. '
-               f'Make sure that this is intentional')
     rds.sadd(f'vms_in_host:{host_id}', vm_id)
     vm_configs = {'mem': mem_mb,
                   'cpu': cpu_cores,
@@ -72,18 +58,10 @@ def create_virtual_machine(mem_mb: int, tap_device: str, cpu_cores: int = 1,
     :param image_path:
     :return: Returns the VM ID
     """
-    host_ip = get_ip()
-    host_id = -1
-    d = rds.hgetall(f'mon_proxy_addr')
-    for k, v in d.items():
-        if v == host_ip:
-            host_id = k
-            break
-    if host_id == -1:
-        eprint(f'This host with {host_ip} is not stored in database. '
-               f'So, can\'t create a VM')
+    if mem_mb > 40000:
+        eprint(f'Can\'t create VM with {mem_mb} MB memory.')
         return ''
-
+    host_id = get_current_host_id()
     if vm_id is None:
         vm_id = uuid.uuid4().hex + datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
         rpc_port = get_int_from_vm_id(vm_id)
@@ -93,11 +71,11 @@ def create_virtual_machine(mem_mb: int, tap_device: str, cpu_cores: int = 1,
         assert isinstance(rpc_port, int)
         assert rpc_port == get_int_from_vm_id(vm_id)
 
-    # proc = subprocess.Popen(
-    #     ['./target/debug/vmm-reference', '--kernel',
-    #      'path=./bzimage-hello-busybox', '--net', 'tap=vmtap100',
-    #      '--memory', 'size_mib=512'], cwd=VMM_REF_DIR, stdout=subprocess.DEVNULL,
-    #     stderr=subprocess.STDOUT)
+    # proc = subprocess.Popen(['./target/debug/vmm-reference', '--kernel',
+    # 'path=./bzimage-hello-busybox', '--net', 'tap=vmtap100',
+    # '--memory', 'size_mib=512'], cwd=VMM_REF_DIR, stdout=subprocess.DEVNULL,
+    # stderr=subprocess.STDOUT)
+    pdb.set_trace()
     proc = subprocess.Popen(
         ['./target/debug/vmm-reference',
          '--kernel', f'path={image_path}',
@@ -105,13 +83,11 @@ def create_virtual_machine(mem_mb: int, tap_device: str, cpu_cores: int = 1,
          '--memory', f'size_mib={mem_mb}',
          '--vcpus', f'num={cpu_cores}'],
         cwd=VMM_REF_DIR,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.STDOUT)
-    proc.terminate()
+        shell=True)
     pid = proc.pid
-
-
-
+    if mem_mb > 4000:
+        eprint(f'You have created a vm with memory {mem_mb} MB. '
+               f'Make sure that this is intentional')
     add_data_to_redis(host_id=host_id,
                       vm_id=vm_id,
                       mem_mb=mem_mb,
@@ -169,8 +145,10 @@ def get_mem_swap_hist(hist):
 def deserialize_rds_dict(hset):
     ret = {}
     for k, v in hset.items():
-        k = k.decode()
-        v = v.decode()
+        if isinstance(k, bytes):
+            k = k.decode()
+        if isinstance(v, bytes):
+            v = v.decode()
         ret[k] = v
         if v.isnumeric():
             ret[k] = int(v)

@@ -1,9 +1,8 @@
 from redis_functions import get_vm_ids
 from setup import setup
-from typing import Dict
 import time
 from threading import Thread
-from config import MON_PORT, MONITOR_INTERVAL, HOST_ID
+from config import MON_PORT, MONITOR_INTERVAL
 from cpu_monitoring import CpuMonitor
 from network_monitoring import NetworkMonitor
 from memory_monitoring import MemoryMonitor
@@ -44,9 +43,12 @@ class MonitoringServicer(mon_pb2_grpc.MonitoringServicer):
         self.mem_mon = mem_mon
 
     def GetStats(self, request, context):
-        cpu_stat = py2grpcStat(self.cpu_mon.get_host_stats(), self.cpu_mon.get_vm_stats())
-        net_stat = py2grpcStat(self.net_mon.get_host_stats(), self.net_mon.get_vm_stats())
-        mem_stat = py2grpcStat(self.mem_mon.get_host_stats(), self.mem_mon.get_vm_stats())
+
+        vm_ids = get_vm_ids()
+        cpu_stat = py2grpcStat(self.cpu_mon.get_host_stats(), self.cpu_mon.get_all_vm_stats(vm_ids))
+        net_stat = py2grpcStat(self.net_mon.get_host_stats(), self.net_mon.get_all_vm_stats(vm_ids))
+        mem_stat = py2grpcStat(self.mem_mon.get_host_stats(), self.mem_mon.get_all_vm_stats(vm_ids))
+
         return mon_pb2.Stats(cpu=cpu_stat, net=net_stat, mem=mem_stat)
 
 
