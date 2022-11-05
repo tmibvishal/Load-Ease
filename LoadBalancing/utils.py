@@ -158,7 +158,6 @@ def deserialize_rds_dict(hset):
 def deserialize_rds_str_list(lst):
     ret = []
     for i in lst:
-        i = i.decode()
         ret.append(i)
     return ret
 
@@ -167,10 +166,10 @@ def get_stats(proxy: str) -> \
         Dict[str, Tuple[Tuple[List[float], Dict[int, float]],
                         Dict[str, Tuple[List[float], Dict[int, float]]]]]:
     with grpc.insecure_channel(proxy) as channel:
-        stub = mon_pb2_grpc.MonitorStub(channel)
-        response = stub.GetStats(mon_pb2.Empty())
+        stub = mon_pb2_grpc.MonitoringStub(channel)
+        response = stub.GetStats(mon_pb2.Void())
         return {
             'cpu': grpcStat2py(response.cpu),
             'mem': grpcStat2py(response.mem),
-            'net': grpcStat2py(response.swap),
+            'net': grpcStat2py(response.net),
         }

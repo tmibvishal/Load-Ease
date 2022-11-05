@@ -12,3 +12,5 @@ NUM_INTERVALS_FOR_HOTSPOT_CONF = 10
 
 _script_dir = os.path.dirname(os.path.realpath(__file__))
 migration_lock = Lock()
+
+DEBUG = True

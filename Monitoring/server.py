@@ -1,5 +1,9 @@
-from redis_functions import get_vm_ids
-from setup import setup
+import threading
+
+from LoadBalancing.balancer import LoadBalancer
+from redis_config import rds
+from redis_functions import get_vm_ids, get_current_host_id
+from setup import setup, test_setup
 import time
 from threading import Thread
 from config import MON_PORT, MONITOR_INTERVAL
@@ -52,11 +56,66 @@ class MonitoringServicer(mon_pb2_grpc.MonitoringServicer):
         return mon_pb2.Stats(cpu=cpu_stat, net=net_stat, mem=mem_stat)
 
 
+def test():
+    test_setup()
+    print(get_vm_ids())
+    logging.basicConfig()
+    cpumon = CpuMonitor()
+    netmon = NetworkMonitor()
+    memmon = MemoryMonitor()
+
+    msvsr = MonitoringServicer(cpumon, memmon, netmon)
+    # server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    # mon_pb2_grpc.add_MonitoringServicer_to_server(
+    #     MonitoringServicer(cpumon, memmon, netmon), server)
+    stats = msvsr.GetStats(None, None)
+    for vm in stats.mem.vms:
+        print(vm.histogram)
+
+    from rpc_utils import grpcStat2py
+    print(grpcStat2py(stats.mem))
+
+    def grpc_serve():
+        server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+        mon_pb2_grpc.add_MonitoringServicer_to_server(
+            MonitoringServicer(cpumon, memmon, netmon), server)
+        server.add_insecure_port(f'[::]:{MON_PORT}')
+        print(f"Listening on port {MON_PORT}...")
+        server.start()
+        server.wait_for_termination()
+    th = threading.Thread(target=grpc_serve, args=(), daemon=True)
+    th.start()
+
+    print('ola')
+
+    time.sleep(1)
+
+    from LoadBalancing.utils import get_stats
+
+    proxy = rds.get(f"mon_proxy_addr:{get_current_host_id()}")
+    stats = get_stats(proxy)
+
+    print(stats.keys())
+
+    vm_provioner = LoadBalancer()
+    vm_provioner.provision({
+        'mem' : 1024 * 1024 * 256,
+        'cpu' : 2,
+        'net' : 1024 * 1024 * 4,
+        'vm_id' : '3',
+        'tap_device' : 'vmtap103',
+    })
+
+
+    exit(0)
+
 
 # Main function of Monitoring Service
 # This script will run in all hosts.
 # And will set up RPC Calls / Other API for the Load balancer to use.
 if __name__ == '__main__':
+    test()
+
     setup()
     logging.basicConfig()
     cpumon = CpuMonitor()

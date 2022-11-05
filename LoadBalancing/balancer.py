@@ -1,4 +1,4 @@
-from LoadBalancing import vmm_backend
+from LoadBalancing import vmm_backend, config
 from redis_config import rds
 from LoadBalancing.config import migration_lock
 from LoadBalancing.utils import get_top_perc, deserialize_rds_dict, \
@@ -29,6 +29,7 @@ class LoadBalancer():
         self.vm_configs: Dict[str, Dict] = {}
         # self.mons : Dict[str, ServerProxy] = {}
         self.proxys = {}
+        self.all_stats = None
 
     # Assumes caller has migration lock
     def provision(self, vm_config) -> str:
@@ -48,15 +49,15 @@ class LoadBalancer():
                 self.vm_configs[vm_id] = deserialize_rds_dict(
                     rds.hgetall(f"vm_configs:{vm_id}"))
                 for key, val in self.vm_configs[vm_id].items():
-                    self.vm_configs[vm_id][key] = int(val)
+                    self.vm_configs[vm_id][key] = val
 
         self.proxys = {}
         for host_id in self.host_ids:
-            proxy_addr = rds.get(f"mon_proxy_addr:{host_id}").decode()
+            proxy_addr = rds.get(f"mon_proxy_addr:{host_id}")
             self.proxys[host_id] = proxy_addr
 
         self.all_stats = {host_id: get_stats(proxy) for host_id, proxy in
-                          self.host_ids.items()}
+                          self.proxys.items()}
 
         # Get best host
         host_id = self.get_best_host(vm_config)
@@ -69,7 +70,6 @@ class LoadBalancer():
                           all_stats.items()}
         mem_vm_stats = {host_id: stats['mem'][1] for host_id, stats in
                         all_stats.items()}
-
         cpu_host_stats = {host_id: stats['cpu'][0] for host_id, stats in
                           all_stats.items()}
         cpu_vm_stats = {host_id: stats['cpu'][1] for host_id, stats in
@@ -78,16 +78,16 @@ class LoadBalancer():
         # Try to provision based on SLA
         best_host = None
         best_val = -(10 ** 20)
-        for host_id, vm_ids in self.vms_in_host:
+        for host_id, vm_ids in self.vms_in_host.items():
             # All the SLA memory allocated to the VMs in this host
             total_vm_sla_mem = sum(
                 [self.vm_configs[vm_id]['mem'] for vm_id in vm_ids])
-            leftover_sla_mem = self.host_configs['mem'] - total_vm_sla_mem
+            leftover_sla_mem = self.host_configs[host_id]['mem'] - total_vm_sla_mem
 
             # All the SLA vCPUs to the VMs in this host
             total_vm_sla_cpu = sum(
                 [self.vm_configs[vm_id]['cpu'] for vm_id in vm_ids])
-            leftover_sla_cpu = self.host_configs['cpu'] - total_vm_sla_cpu
+            leftover_sla_cpu = self.host_configs[host_id]['cpu'] - total_vm_sla_cpu
 
             if leftover_sla_mem >= vm_config['mem'] and leftover_sla_cpu >= \
                     vm_config['cpu']:
@@ -95,6 +95,9 @@ class LoadBalancer():
                 if leftover_sla_mem > best_val:
                     best_host = host_id
                     best_val = leftover_sla_mem
+
+        if config.DEBUG:
+            best_host = None
 
         if best_host is not None:
             return best_host
@@ -114,7 +117,10 @@ class LoadBalancer():
                                      'mem'] - total_vm_mem_peak_usage
 
             total_vm_cpu_peak_usage = 0
-            for vm_id, (_, vm_hist) in cpu_vm_stats.items():
+
+            vm_stats = cpu_vm_stats[host_id]
+
+            for vm_id, (_, vm_hist) in vm_stats.items():
                 peak_usage = get_top_perc(vm_hist, 0.95) * \
                              self.host_configs[host_id]['cpu']
                 total_vm_cpu_peak_usage += peak_usage
@@ -127,6 +133,9 @@ class LoadBalancer():
                 if total_mem_leftover > best_val:
                     best_host = host_id
                     best_val = total_mem_leftover
+
+        if config.DEBUG:
+            best_host = None
 
         if best_host is not None:
             return best_host
@@ -144,6 +153,7 @@ class LoadBalancer():
             leftover_peak_cpu = self.host_configs[host_id]['cpu'] * (
                     1 - peak_host_cpu_usage)
 
+
             if peak_host_mem_usage >= 0.5:
                 # this means swap was used and memory was full 
                 continue
@@ -156,6 +166,8 @@ class LoadBalancer():
                         best_host = host_id
                         best_val = leftover_peak_mem
 
+        if config.DEBUG:
+            best_host = None
         if best_host is not None:
             return best_host
 
@@ -173,14 +185,17 @@ class LoadBalancer():
         # Try to provision based on SLA
         best_host = None
         best_val = -(10 ** 20)
-        for host_id, vm_ids in self.vms_in_host:
+        for host_id, vm_ids in self.vms_in_host.items():
             total_vm_sla_mem = sum(
                 [self.vm_configs[vm_id]['mem'] for vm_id in vm_ids])
-            leftover_sla_mem = self.host_configs['mem'] - total_vm_sla_mem
+            leftover_sla_mem = self.host_configs[host_id]['mem'] - total_vm_sla_mem
             if leftover_sla_mem >= vm_config[
                 'mem'] and leftover_sla_mem > best_val:
                 best_host = host_id
                 best_val = leftover_sla_mem
+
+        if config.DEBUG:
+            best_host = None
 
         if best_host is not None:
             return best_host
@@ -202,6 +217,9 @@ class LoadBalancer():
                 'mem'] and total_mem_leftover > best_val:
                 best_host = host_id
                 best_val = total_mem_leftover
+
+        if config.DEBUG:
+            best_host = None
 
         if best_host is not None:
             return best_host
@@ -248,12 +266,12 @@ class LoadBalancer():
     def get_best_host(self, vm_config) -> str:
         best_host = self.get_best_host_cpu_mem(vm_config)
 
-        if best_host != None:
+        if best_host is not None:
             return best_host
 
         best_host = self.get_best_host_mem(vm_config)
 
-        assert (best_host != None)
+        assert (best_host is not None)
 
         return best_host
 

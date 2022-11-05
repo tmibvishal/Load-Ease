@@ -76,8 +76,9 @@ def get_current_host_id(check_existence: bool = False) -> int:
 
 def get_vm_ids() -> List[str]:
     host_id = get_current_host_id()
+    print(host_id)
     vm_ids = rds.smembers(f"vms_in_host:{host_id}")
-    return [vm_id.decode('utf-8') for vm_id in vm_ids]
+    return [vm_id for vm_id in vm_ids]
 
 
 def get_vm_pid(vm_id: str) -> int:

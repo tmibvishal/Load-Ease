@@ -17,7 +17,7 @@ def py2grpcStat(host_stats, vm_stats_py):
     return stat
 
 def grpcStat2py(stat):
-    host_stats = (list(stat.timeseries), grpcMap2pyDict(stat.histogram))
+    host_stats = (list(stat.host.timeseries), grpcMap2pyDict(stat.host.histogram))
     vm_stats = {}
     for vm in stat.vms:
         vm_stats[vm.vm_id] = (list(vm.timeseries), grpcMap2pyDict(vm.histogram))
