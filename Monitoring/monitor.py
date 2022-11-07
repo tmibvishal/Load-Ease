@@ -74,7 +74,8 @@ class Monitor:
         timeseries: List = self.host_timeseries
         if not host:
             timeseries = self.vm_timeseries[vm_id]
-        timeseries.append(resource_usage)
+        # Fixed / 100
+        timeseries.append(resource_usage / 100)
         if len(timeseries) > config.TIME_SERIES_LEN:
             timeseries.pop(0)
 
