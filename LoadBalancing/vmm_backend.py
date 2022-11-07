@@ -20,10 +20,10 @@ def create_vm_request(host_id, vm_config):
     #     'create': True
     # }
     request = vm_config.copy()
-    request['image_path'] = 'path'
-    request['create'] = True
+    # request['image_path'] = 'path'
+    # request['create'] = True
 
-    vmm_proxy_addr = rds.get(f"vmm_proxy_addr:{host_id}").decode()
+    vmm_proxy_addr = rds.get(f"vmm_proxy_addr:{host_id}")
 
     resp = requests.post(f'{vmm_proxy_addr}/{CREATE_END_POINT}', json=request).json()
     resp = json.loads(resp)
@@ -33,7 +33,7 @@ def create_vm_request(host_id, vm_config):
 
 def migrate_vm(vm_id, new_host_id):
 
-    vm_config = deserialize_rds_dict(rds.hgetall(f'vm_config:{vm_id}'))
+    vm_config = deserialize_rds_dict(rds.hgetall(f'vm_configs:{vm_id}'))
     old_host = vm_config['host_id']
     rpc_port = vm_config['rpc_port']
 

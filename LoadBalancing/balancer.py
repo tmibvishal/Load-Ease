@@ -281,12 +281,16 @@ vm_provioner = LoadBalancer()
 
 def create_vm(vm_config):
     with migration_lock:
-        host_id = vm_provioner.get_best_host(vm_config)
-        vm_id = str(uuid.uuid4())
 
-        vm_config['vm_id'] = vm_id
-        vm_config['host_id'] = host_id
-        vm_config['tap_device'] = f'tap:{vm_id}'
+        host_id = vm_provioner.provision(vm_config)
+
+        # vm_id = str(uuid.uuid4())
+
+        vm_id = vm_config['vm_id']
+
+        # vm_config['vm_id'] = vm_id
+        # vm_config['host_id'] = host_id
+        # vm_config['tap_device'] = f'tap:{vm_id}'
 
         resp = vmm_backend.create_vm_request(
             host_id=host_id,
@@ -299,7 +303,37 @@ def create_vm(vm_config):
         assert 'tap_device' in vm_config
 
         # Add vm info. in redis
-        rds.hset(f'vm_config:{vm_id}', mapping=vm_config)
+        rds.hset(f'vm_configs:{vm_id}', mapping=vm_config)
         rds.sadd(f'vms_in_host:{host_id}', vm_id)
 
     return vm_config
+
+
+_vm_id = 4
+def test_create_vm_local(vm_config=None):
+    global _vm_id
+    vm_config = {
+        'mem' : 1024 * 1024 * 256,
+        'cpu' : 2,
+        'net' : 1024 * 1024 * 4,
+        'vm_id' : str(_vm_id),
+        'tap_device' : 'vmtap103',
+    }
+    _vm_id += 1
+
+    from SnapshotTeam.create_vm import new_vm
+    with migration_lock:
+
+        host_id = vm_provioner.provision(vm_config)
+        # ignore host_id for this test
+
+        pid = new_vm(vm_config)
+        print(pid)
+        vm_config['pid'] = pid
+        vm_id = vm_config['vm_id']
+        vm_config['host_id'] = host_id
+
+        print(vm_config)
+
+        rds.hset(f'vm_configs:{vm_id}', mapping=vm_config)
+        rds.sadd(f'vms_in_host:{host_id}', vm_id)

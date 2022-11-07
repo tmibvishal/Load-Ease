@@ -84,7 +84,7 @@ def test_setup():
         'cpu': multiprocessing.cpu_count(),
         'mem': psutil.virtual_memory().total,
         'net': config.HOST_PEAK_NET_BIT_RATE,
-        'net_device' : 'eth0',
+        'net_device' : 'wlp60s0',
     }
 
     vm_listener_port = 5015
@@ -102,10 +102,13 @@ def test_setup():
 
 
 
-def setup():
+def setup(flushdb=False):
     # TODO: Flush everything related to this server
 
     # TODO: put back speedtest
+
+    if flushdb:
+        rds.flushall()
 
     host_id = get_current_host_id(check_existence = False)
     if host_id != -1:
@@ -123,7 +126,7 @@ def setup():
         'cpu': multiprocessing.cpu_count(),
         'mem': psutil.virtual_memory().total,
         'net': config.HOST_PEAK_NET_BIT_RATE,
-        'net_device' : 'eth0', # TODO get actual host net device
+        'net_device' : 'wlp60s0', # TODO get actual host net device
     }
 
     vm_listener_port = 5015
@@ -133,12 +136,12 @@ def setup():
     rds.set(f'mon_proxy_addr:{host_id}', f'{host_ip}:{config.MON_PORT}')
     rds.sadd('host_ids', host_id)
     rds.hset(f'host_id_to_ip', key=host_id, value=host_ip)
-    # pdb.set_trace()
-    start_vms(vms_db)
     # start_vm_listener_flask_server(vm_listener_port)
-    # for vm in vms_db:
-    #     rds.sadd(f'vms_in_host:{vm['host_id']}', vm['vm_id'])
-    #     rds.hmset(f'vm_configs:{vm['vm_id']}', vm)
+
+    for vm in vms_db:
+        rds.sadd(f'vms_in_host:{host_id}', vm['vm_id'])
+        rds.hmset(f'vm_configs:{vm["vm_id"]}', vm)
+
 
 
 if __name__ == '__main__':

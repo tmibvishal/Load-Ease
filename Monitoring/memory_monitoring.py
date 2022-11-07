@@ -32,7 +32,7 @@ class MemoryMonitor(Monitor):
         used_swap = swap_mem_stats.used / swap_mem_stats.total * 0.5
         virt_stats = psutil.virtual_memory()
         ram_used = virt_stats.used / virt_stats.total * 0.5
-        host_stats = ram_used + used_swap
+        host_stats = (ram_used + used_swap) * 100
 
         # print all vm ids
         # print(f"vm-ids: {self.vm_ids}")

@@ -118,6 +118,7 @@ def test():
         'tap_device' : 'vmtap103',
     })
 
+
     print(host_id)
 
 
@@ -128,9 +129,8 @@ def test():
 # This script will run in all hosts.
 # And will set up RPC Calls / Other API for the Load balancer to use.
 if __name__ == '__main__':
-    test()
-
-    setup()
+    # test()
+    setup(flushdb=True)
     logging.basicConfig()
     cpumon = CpuMonitor()
     netmon = NetworkMonitor()
