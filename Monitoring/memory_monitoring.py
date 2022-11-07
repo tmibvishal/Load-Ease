@@ -31,17 +31,13 @@ class MemoryMonitor(Monitor):
 
         # TODO FIXME: swap can be filled even though mem has a lot of space
         # So don't add swap percentage until mem is mostly full.
+        # TODO FIXME: removing swap
         
-        swap_mem_stats = psutil.swap_memory()
-        used_swap = swap_mem_stats.used / swap_mem_stats.total * 0.5
         virt_stats = psutil.virtual_memory()
         ram_used = virt_stats.used / virt_stats.total
 
-        host_stats = None
-        if ram_used > 0.8:
-            host_stats = (ram_used * 0.5 + used_swap) * 100
-        else:
-            host_stats = ram_used * 0.5 * 100
+
+        host_stats = ram_used * 100
 
         # print all vm ids
         # print(f"vm-ids: {self.vm_ids}")
