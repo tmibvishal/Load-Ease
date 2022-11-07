@@ -28,11 +28,20 @@ class MemoryMonitor(Monitor):
         # Getting the host stats
         # Host stats are nothing but the swap memory used
         # We'd want to decrease this swap memory
+
+        # TODO FIXME: swap can be filled even though mem has a lot of space
+        # So don't add swap percentage until mem is mostly full.
+        
         swap_mem_stats = psutil.swap_memory()
         used_swap = swap_mem_stats.used / swap_mem_stats.total * 0.5
         virt_stats = psutil.virtual_memory()
-        ram_used = virt_stats.used / virt_stats.total * 0.5
-        host_stats = (ram_used + used_swap) * 100
+        ram_used = virt_stats.used / virt_stats.total
+
+        host_stats = None
+        if ram_used > 0.8:
+            host_stats = (ram_used * 0.5 + used_swap) * 100
+        else:
+            host_stats = ram_used * 0.5 * 100
 
         # print all vm ids
         # print(f"vm-ids: {self.vm_ids}")

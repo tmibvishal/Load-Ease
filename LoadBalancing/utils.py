@@ -173,3 +173,10 @@ def get_stats(proxy: str) -> \
             'mem': grpcStat2py(response.mem),
             'net': grpcStat2py(response.net),
         }
+
+
+def grpc_new_vm(proxy: str):
+    with grpc.insecure_channel(proxy) as channel:
+        stub = mon_pb2_grpc.MonitoringStub(channel)
+        response = stub.CreateTestVM(mon_pb2.Void())
+        return response.pid

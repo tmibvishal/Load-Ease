@@ -46,6 +46,7 @@ def monitoring_thread(cpu_mon: CpuMonitor, mem_mon: MemoryMonitor, net_mon: Netw
         time.sleep(MONITOR_INTERVAL)
 
 
+
 class MonitoringServicer(mon_pb2_grpc.MonitoringServicer):
     def __init__(self, cpu_mon, mem_mon, net_mon) -> None:
         super().__init__()
@@ -61,6 +62,12 @@ class MonitoringServicer(mon_pb2_grpc.MonitoringServicer):
         mem_stat = py2grpcStat(self.mem_mon.get_host_stats(), self.mem_mon.get_all_vm_stats(vm_ids))
 
         return mon_pb2.Stats(cpu=cpu_stat, net=net_stat, mem=mem_stat)
+
+    def CreateTestVM(self, request, context):
+        from SnapshotTeam.create_vm import new_vm
+
+        pid = new_vm(None)
+        return mon_pb2.Pid(pid=pid)
 
 
 def test():
