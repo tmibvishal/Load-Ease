@@ -7,7 +7,14 @@ def show_resource_util():
     memory_percentage = 50
     net_usage = 1000
     data_unit = "MB"
-
+    
+    hosts_id = [0,1,2,3]
+    hosts_vms_num = [1,1,1,1]
+    hosts_cpu_usage = [20.00,30.00,40.00,50.00]
+    hosts_mem_usage = [80.00,85.55,90.50,12.6]
+    hosts_net_usage = [100,200,300,128]
+    #assuming that 0th host has 0th to hosts_vms_num index values
+    
     total_ids=7
     vms_id = list(range(total_ids));
     vms_cpu_usage = [20 for i in range(total_ids)]
@@ -33,7 +40,7 @@ def show_resource_util():
     for key,value in host_net_usage_histogram.items():
         network_usage.append({"usage":key,"probability":value});
 
-    return render_template('resource_usage.html',avg_cpu_usage=cpu_percentage, mem_usage=memory_percentage,net_usage=net_usage,data_unit=data_unit,vms_id=vms_id, vms_cpu_usage=vms_cpu_usage,vms_mem_usage=vms_mem_usage, vms_net_usage=vms_net_usage,vm_num=len(vms_id),histogram_cpu_usage=cpu_usage,histogram_mem_usage=mem_usage,histogram_net_usage=network_usage)
+    return render_template('resource_usage.html',avg_cpu_usage=cpu_percentage, mem_usage=memory_percentage,net_usage=net_usage,data_unit=data_unit,hosts_id = hosts_id, hosts_vms_num = hosts_vms_num, hosts_cpu_usage = hosts_cpu_usage, hosts_mem_usage = hosts_mem_usage, hosts_net_usage = hosts_net_usage,hosts_num=len(hosts_id),vms_id=vms_id, vms_cpu_usage=vms_cpu_usage,vms_mem_usage=vms_mem_usage, vms_net_usage=vms_net_usage,vm_num=len(vms_id),histogram_cpu_usage=cpu_usage,histogram_mem_usage=mem_usage,histogram_net_usage=network_usage)
 
 if __name__ == '__main__':
     app.run()
