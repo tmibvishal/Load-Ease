@@ -3,15 +3,17 @@ import mon_pb2
 def py2grpcStat(host_stats, vm_stats_py):
     time_series, hist = host_stats
     host_stat = mon_pb2.HostStat(
-        histogram = hist,
-        timeseries = time_series
-    )
+        histogram = hist)
+    host_stat.timeseries.extend(time_series)
 
     vm_stats = []
 
     for vm_id, (time_series, hist) in vm_stats_py.items():
-        vm_stats.append(mon_pb2.VmStat(vm_id= vm_id, histogram = hist, timeseries = time_series))
+        vm_stat = mon_pb2.VmStat(vm_id= vm_id, histogram = hist)
+        vm_stat.timeseries.extend(time_series)
+        vm_stats.append(vm_stat)
 
+    print(host_stat.timeseries)
     stat = mon_pb2.Stat(host = host_stat)
     stat.vms.extend(vm_stats)
     return stat

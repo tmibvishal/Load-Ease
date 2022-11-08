@@ -40,9 +40,7 @@ def monitoring_thread(cpu_mon: CpuMonitor, mem_mon: MemoryMonitor, net_mon: Netw
 
         host_stat, vm_stats = cpu_mon.collect_stats_network_effect(host_stat, vm_stats)
         cpu_mon.update(host_stat, vm_stats)
-
         print('cpu_stats:', vm_stats, host_stat)
-        
         time.sleep(MONITOR_INTERVAL)
 
 
@@ -55,17 +53,14 @@ class MonitoringServicer(mon_pb2_grpc.MonitoringServicer):
         self.mem_mon = mem_mon
 
     def GetStats(self, request, context):
-
         vm_ids = get_vm_ids()
         cpu_stat = py2grpcStat(self.cpu_mon.get_host_stats(), self.cpu_mon.get_all_vm_stats(vm_ids))
         net_stat = py2grpcStat(self.net_mon.get_host_stats(), self.net_mon.get_all_vm_stats(vm_ids))
         mem_stat = py2grpcStat(self.mem_mon.get_host_stats(), self.mem_mon.get_all_vm_stats(vm_ids))
-
         return mon_pb2.Stats(cpu=cpu_stat, net=net_stat, mem=mem_stat)
 
     def CreateTestVM(self, request, context):
         from SnapshotTeam.create_vm import new_vm
-
         pid = new_vm(None)
         return mon_pb2.Pid(pid=pid)
 

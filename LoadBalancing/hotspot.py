@@ -15,7 +15,8 @@ from LoadBalancing.utils import get_stats
 from LoadBalancing.vmm_backend import migrate_vm
 from redis_config import rds
 from LoadBalancing.config import HOTSPOT_THRESHOLD, \
-    NUM_INTERVALS_FOR_HOTSPOT_CONF, migration_lock
+    NUM_INTERVALS_FOR_HOTSPOT_CONF, migration_lock, MEM_HOTSPOT_THRESHOLD, \
+    CPU_HOTSPOT_THRESHOLD
 from redis_functions import eprint
 
 
@@ -35,30 +36,39 @@ def background_task():
         overloaded_host: int = -1
         vol: List[Tuple[int, float]] = []
 
-        for host_id, host_proxy in d:
-            host_proxy = host_proxy.decode()
+        for host_id, _ in d.items():
+            # if host_id == 2:
+            #     continue
+
+            host_id = int(host_id)
 
             assert isinstance(host_id, int)
-            assert isinstance(host_proxy, str)
 
-            # host_proxy example for local host http://localhost:8000/
-            port = 8000
+            host_proxy = rds.get(f'mon_proxy_addr:{host_id}')
 
-            res = get_stats(host_proxy)
-            # with xmlrpc.client.ServerProxy(host_proxy + f':{port}') as proxy:
-            memory_time_series: List[float] = res['mem'][0][0]
-            network_time_series: List[float] = res['network'][0][0]
-            cpu_time_series: List[float] = res['cpu'][0][0]
+            print(f'host_proxy: {host_proxy}')
 
-            cpu = get_avg(cpu_time_series, NUM_INTERVALS_FOR_HOTSPOT_CONF)
-            mem = get_avg(memory_time_series, NUM_INTERVALS_FOR_HOTSPOT_CONF)
-            net = get_avg(network_time_series, NUM_INTERVALS_FOR_HOTSPOT_CONF)
+            cpu = 0.1
+            mem = 0.1
+            try:
+                res = get_stats(host_proxy)
 
-            if cpu > HOTSPOT_THRESHOLD or mem > HOTSPOT_THRESHOLD or net > HOTSPOT_THRESHOLD:
+                # with xmlrpc.client.ServerProxy(host_proxy + f':{port}') as proxy:
+                memory_time_series: List[float] = res['mem'][0][0]
+                cpu_time_series: List[float] = res['cpu'][0][0]
+
+                cpu = get_avg(cpu_time_series, NUM_INTERVALS_FOR_HOTSPOT_CONF)
+                mem = get_avg(memory_time_series, NUM_INTERVALS_FOR_HOTSPOT_CONF)
+
+                print(f'cpu: {cpu}, mem: {mem}')
+            except Exception:
+                print('can\'t access the host')
+
+            if cpu > 0.05 or mem > MEM_HOTSPOT_THRESHOLD:
                 overload = True
                 overloaded_host = host_id
 
-            vol.append((host_id, 1 / ((1 - cpu) * (1 - mem) * (1 - net))))
+            vol.append((host_id, 1 / ((1 - cpu) * (1 - mem))))
 
         if overload:
             # Now you need to do the Migration to balance the VMs properly
@@ -66,7 +76,7 @@ def background_task():
 
             host_idx = -1
             for i in range(len(vol)):
-                if vol[0] == overloaded_host:
+                if vol[i][0] == overloaded_host:
                     host_idx = i
                     break
 
@@ -80,32 +90,41 @@ def background_task():
             from_host_id: int = vol[host_idx][0]
 
             for vm_id in rds.smembers(name=f'vms_in_host:{from_host_id}'):
-                vm_id = vm_id.decode()
                 assert isinstance(vm_id, str)
-                d = rds.hgetall(name=f'vm_info:{vm_id}')
+                d = rds.hgetall(name=f'vm_configs:{vm_id}')
+                print(d)
                 # Pick the smallest size VM
-                if best is None or lowest_size > d['size']:
+                size_mem = int(d['mem']) // (1024 * 1024)
+                if best is None or lowest_size > size_mem:
                     best = vm_id
-                    lowest_size = d['size']
+                    lowest_size = size_mem
 
             # You need to migrate the VM with id best
             target_host_id = vol[-1][0]
 
-            if from_host_id != target_host_id:
-                with migration_lock:
-                    # Using migration_lock since we are not using transactions
-                    # in Redis
-                    migrate_vm(vm_id=best, new_host_id=target_host_id)
+            if best is None:
+                print('No VM found on host that can be shifted')
             else:
-                eprint(f'No proper host available to transfer VM from over '
-                       f'loaded host with id {from_host_id}. '
-                       f'Best target VM we can find is {target_host_id}')
+                print(f'from_host_id: {from_host_id}, best vm to shift: {best}')
+                if from_host_id != target_host_id:
+                    print(f'Request: Migrate VM {best} from {from_host_id} to {target_host_id}')
+                    with migration_lock:
+                        # Using migration_lock since we are not using transactions
+                        # in Redis
+                        # migrate_vm(vm_id=best, new_host_id=target_host_id)
+                        pass
+                else:
+                    eprint(f'No proper host available to transfer VM from over '
+                           f'loaded host with id {from_host_id}. '
+                           f'Best target VM we can find is {target_host_id}')
 
             # Check if vm with id best can be moved to target_host
             # And then start the migration
 
-        # Wait for 5 sec
-        sleep(5)
+
+
+        # Wait for 2 sec
+        sleep(2)
 
 
 # create and start the daemon thread
@@ -114,5 +133,7 @@ daemon = Thread(target=background_task, daemon=True, name='Monitor')
 daemon.start()
 print('Hotspot Detection Started')
 while True:
-    value = random() * 5
+    value = 5
     sleep(value)
+    background_task()
+

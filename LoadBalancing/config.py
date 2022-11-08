@@ -8,6 +8,8 @@ from threading import Lock
 MON_PORT = 3413
 
 HOTSPOT_THRESHOLD = 0.80
+CPU_HOTSPOT_THRESHOLD = 0.25
+MEM_HOTSPOT_THRESHOLD = 0.75
 NUM_INTERVALS_FOR_HOTSPOT_CONF = 10
 
 _script_dir = os.path.dirname(os.path.realpath(__file__))

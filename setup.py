@@ -1,5 +1,7 @@
 import os
 import pdb
+from typing import List
+
 import speedtest
 import multiprocessing
 import psutil
@@ -14,7 +16,7 @@ from redis_functions import get_new_host_id, get_current_host_id
 import os
 
 
-def pgrep(pattern):
+def pgrep(pattern) -> List[str]:
     """return a list with process IDs which matches the selection criteria"""
     args = ["pgrep", str(pattern)]
     out = os.popen(" ".join(args)).read().strip()
@@ -29,7 +31,7 @@ vms_db = [
         'net': 1024 * 1024 * 1,
         'tap_device': 'vmtap1',
         'vm_id' : 0,
-        'pid' : int(pgrep('firefox')[0])
+        'pid' : int(pgrep('chrome')[0])
     },
     {
         'mem': 1024 * 1024 * 1024 * 4,
@@ -133,7 +135,7 @@ def setup(flushdb=False):
     host_ip = get_ip()
     
     # mon_proxy_addr = f'{host_ip}:{config.MON_PORT}'
-    mon_proxy_addr = '0.tcp.in.ngrok.io:12384'
+    mon_proxy_addr = '0.tcp.in.ngrok.io:12896'
 
     rds.set(f'vmm_proxy_addr:{host_id}', f'{host_ip:{vm_listener_port}}')
     rds.hset(f'host_configs:{host_id}', mapping=host_config)
