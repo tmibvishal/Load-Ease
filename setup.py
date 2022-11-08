@@ -133,7 +133,7 @@ def setup(flushdb=False):
     host_ip = get_ip()
     
     # mon_proxy_addr = f'{host_ip}:{config.MON_PORT}'
-    mon_proxy_addr = '0.tcp.in.ngrok.io:19800'
+    mon_proxy_addr = '0.tcp.in.ngrok.io:12384'
 
     rds.set(f'vmm_proxy_addr:{host_id}', f'{host_ip:{vm_listener_port}}')
     rds.hset(f'host_configs:{host_id}', mapping=host_config)
@@ -142,9 +142,9 @@ def setup(flushdb=False):
     rds.hset(f'host_id_to_ip', key=host_id, value=host_ip)
     # start_vm_listener_flask_server(vm_listener_port)
 
-    for vm in vms_db:
-        rds.sadd(f'vms_in_host:{host_id}', vm['vm_id'])
-        rds.hmset(f'vm_configs:{vm["vm_id"]}', vm)
+    # for vm in vms_db:
+    #     rds.sadd(f'vms_in_host:{host_id}', vm['vm_id'])
+    #     rds.hmset(f'vm_configs:{vm["vm_id"]}', vm)
 
 
 

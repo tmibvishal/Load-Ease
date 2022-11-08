@@ -19,8 +19,6 @@ class MemoryMonitor(Monitor):
         :return: tuple
                 1) First element of the tuple is the current + swap memory
                    in host
-                    1.1) 0.5 -> 100% Mem Utilization
-                    1.2) 0.6 -> 100% Mem + 10% Swap
                 2) Second element of the tuple is a dictionary with mapping
                    vm_id to percentage of memory it uses on the host
         """
