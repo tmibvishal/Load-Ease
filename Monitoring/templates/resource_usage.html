@@ -9,6 +9,10 @@
 		<script src="https://cdn.anychart.com/releases/8.0.1/js/anychart-pie.min.js"></script>
 		<!--library for histogram-->
 		<script src="//www.ag-grid.com/archive/28.1.0/dev/ag-charts-community/dist/ag-charts-community.min.js"></script>
+		<!--  js for sorting table -->
+		<script src="{{ url_for('static', filename='sortable_table.js') }}"></script>
+		<!-- css for sorting table -->
+		<link href="{{ url_for('static', filename='sortable_table.css') }}" rel="stylesheet">
 		<style>
 			/* This tag is used to create a Cascading Style Sheet for displaying the attractive web page. */
 		</style>
@@ -23,21 +27,21 @@
 		<h3 style="text-align: center;"><strong>Total Net Usage : {{net_usage}} {{data_unit}}</strong></h3>
 
 		<!--Hosts resource table-->
-		<table id="HostMonitorTable" style="text-align: center; border-color: rgba(0, 0, 0, 0.0.3); width:100%;" border="1px">
+		<table id="HostMonitorTable" class="sortable" style="text-align: center; border-color: rgba(0, 0, 0, 0.0.3); width:100%;" border="1">
 			<caption><span style="color: #808080;"><strong>&nbsp;All Hosts Resource Usage</strong></span></caption>
 			<thead>
 				<tr >
-					<td><span style="background-color: #ffffff; color: #666699;"><strong>Host's ID</strong></span></td>
-					<td><span style="background-color: #ffffff; color: #666699;"><strong>Total VMs</strong></span></td>
-					<td><span style="background-color: #ffffff; color: #666699;"><strong>CPU Usage</strong></span></td>
-					<td><span style="background-color: #ffffff; color: #666699;"><strong>Memory Usage</strong></span></td>
-					<td><span style="background-color: #ffffff; color: #666699;"><strong>Net Usage</strong></span></td>
+					<th aria-sort="ascending"><button><span aria-hidden="true" style=" color: #666699;"><strong>Host's ID</strong></span></button></th>
+					<th><button><span aria-hidden="true" style=" color: #666699;"><strong>Total VMs</strong></span></button></th>
+					<th><button><span aria-hidden="true" style=" color: #666699;"><strong>CPU Usage</strong></span></button></th>
+					<th><button><span aria-hidden="true" style=" color: #666699;"><strong>Memory Usage</strong></span></button></th>
+					<th><button><span aria-hidden="true" style=" color: #666699;"><strong>Net Usage</strong></span></button></th>
 				</tr>
 			</thead>
 			<tbody></tbody>
 		</table>
 	</br>
-	<div id="VMsTable" style="width: 100%;">
+	<div id="VMsTable" style="width: 100%; ">
 
 	</div>
 	</br>
@@ -66,31 +70,36 @@
 			{
 			    // Insert a row at the end of table
 			    var newRow = HosttbodyRef.insertRow();
-			    newRow.innerHTML = "<tr ><td>"+hosts_id[i]+"</td><td>"+hosts_vms_num[i]+"</td><td>"+hosts_cpu_usage[i].toFixed(2)+" % </td><td>"+hosts_mem_usage[i].toFixed(2)+" % </td><td>"+hosts_net_usage[i]+" "+'{{data_unit}}'+" </td><td>"+"<button id='button_host"+hosts_id[i]+"' type='Detail' onclick='show_hide_vmtable("+hosts_id[i]+")'>Details</button>"+"</td></tr>";
+			    newRow.innerHTML = "<tr ><td>"+hosts_id[i]+"</td><td>"+hosts_vms_num[i]+"</td><td>"+hosts_cpu_usage[i].toFixed(2)+" % </td><td>"+hosts_mem_usage[i].toFixed(2)+" % </td><td>"+hosts_net_usage[i]+" "+'{{data_unit}}'+" </td><td>"+"<button id='button_host"+hosts_id[i]+"' style='cursor:pointer;' type='Detail' onclick='show_hide_vmtable("+hosts_id[i]+")'>Details</button>"+"</td></tr>";
 			}
 			vms_id = {{vms_id}};
 			vms_cpu_usage = {{vms_cpu_usage}};
 			vms_mem_usage = {{vms_mem_usage}};
 			vms_net_usage = {{vms_net_usage}};
+			for(var i=0;i<{{hosts_num}}; i++){
+				show_hide_vmtable(i);
+			}
 			function show_hide_vmtable(host_id) {
 				var d = document.getElementById("VMsTable");
 				var t = document.getElementById("VMMonitorTable"+host_id.toString());
 				if(!t){
 					var new_t = document.createElement('Table');
 					new_t.id = "VMMonitorTable"+host_id.toString();
+					new_t.className = "sortable";
 					new_t.style = "text-align: center; border-color: rgba(0, 0, 5, 0.0.3); width:100%; margin: auto; display:none;";
-					new_t.style.border = "1px";
+					new_t.border = "1px";
 					new_t.innerHTML = "<caption><span style='color: #808080;'><strong>&nbsp;VMs Resource Usage of Host id:"+host_id.toString()+"</strong></span></caption>"+
 			"<thead>"+
-				"<tr >"+
-					"<td><span style='background-color: #ffffff; color: #666699;'><strong>VMs ID</strong></span></td>"+
-					"<td><span style='background-color: #ffffff; color: #666699;'><strong>CPU Usage</strong></span></td>"+
-					"<td><span style='background-color: #ffffff; color: #666699;'><strong>Memory Usage</strong></span></td>"+
-					"<td><span style='background-color: #ffffff; color: #666699;'><strong>Net Usage</strong></span></td>"+
+				"<tr>"+
+					"<th aria-sort='descending'><button><span aria-hidden='true' style=' color: #666699';><strong>VMs ID</strong></span></button></th>"+
+					"<th><button><span aria-hidden='true' style=' color: #666699';><strong>CPU Usage</strong></span></button></th>"+
+					"<th><button><span aria-hidden='true' style=' color: #666699';><strong>Memory Usage</strong></span></button></th>"+
+					"<th><button><span aria-hidden='true' style=' color: #666699';><strong>Net Usage</strong></span></button></th>"+
 				"</tr>"+
 			"</thead>"+
 			"<tbody></tbody>";
 					d.appendChild(new_t);
+					d.appendChild(document.createElement("br"));
 					t = document.getElementById("VMMonitorTable"+host_id.toString());
 					var VMtbodyRef = t.getElementsByTagName('tbody')[0];
 					var index = hosts_id.findIndex(function (element) {	return element == host_id; });
