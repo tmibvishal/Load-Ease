@@ -1,7 +1,7 @@
 # TODO: add protect each function using @Lock decorator ?
 
 from typing import List, Tuple, Dict, Any
-import LoadBalancing.Monitoring.config
+from LoadBalancing.Monitoring.config import TIME_SERIES_LEN
 from threading import Thread
 import time
 
@@ -75,7 +75,7 @@ class Monitor:
         if not host:
             timeseries = self.vm_timeseries[vm_id]
         timeseries.append(resource_usage)
-        if len(timeseries) > config.TIME_SERIES_LEN:
+        if len(timeseries) > TIME_SERIES_LEN:
             timeseries.pop(0)
 
     def get_host_stats(self) -> Tuple[List[float], Dict[int, float]]:
