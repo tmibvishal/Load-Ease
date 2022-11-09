@@ -13,6 +13,7 @@
     font-weight: bold;
     border-bottom: thin solid #888;
     position: relative;
+    background-color: lightblue;
   }
   
   table.sortable th.no-sort {
@@ -74,7 +75,7 @@
     text-align: right;
   }
   
-  table.sortable tbody tr:nth-child(odd) {
+  table.sortable tbody tr:nth-child(even) {
     background-color: #ddd;
   }
   
