@@ -1,5 +1,4 @@
-from redis_functions import get_vm_pid
-from redis_functions import eprint
+from redis_functions import eprint, get_vm_pid
 from monitor import Monitor
 from typing import Any, Dict, List, Tuple, Union
 import psutil
@@ -33,9 +32,6 @@ class MemoryMonitor(Monitor):
         virt_stats = psutil.virtual_memory()
         ram_used = virt_stats.used / virt_stats.total * 0.5
         host_stats = ram_used + used_swap
-
-        # print all vm ids
-        print(f"vm-ids: {self.vm_ids}")
 
         # Getting the VM stats
         vm_stats = {}
