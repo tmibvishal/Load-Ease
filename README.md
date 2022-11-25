@@ -1,65 +1,35 @@
 <img width="407" alt="Logo" src="https://user-images.githubusercontent.com/31121102/198831561-6cb6b1ed-c229-4f3c-bcb3-c0dbd43b9e42.png">
 
-# TODO for all
-- Read paper of sandpiper
+# LoadEase
+
+- Load balancer for inhouse cloud service used for programming labs.  
+
+- Uses [psutil](https://pypi.org/project/psutil/) to monitor the network, memory and cpu usage of each VM and each host.   
+
+- Receives incoming create VM requests and routes them to appropiate hosts.  
+
+- Detects overloaded hosts and identifies VMs to migrate to reduce the load.   
+
+- Makes decisions based on %usage history(timeseries) and histogram(probability distribution of %usage).   
+
+- Based on publication: [Sandpiper](https://dl.acm.org/doi/10.1016/j.comnet.2009.04.014)
+
+## Architecture
+
+Stateless loadbalancer and hotspot detection service. Seamlessly add or remove hosts.  
+
+<img width="659" alt="image" src="https://user-images.githubusercontent.com/74413910/203926003-c2c6ec48-237b-49ce-948b-94cf0c845393.png">
 
 
-# Notes
-## CPU Monitoring (Ramneek + Tushar + Sahil)
-### Host
-- CPU usage for each VM (just check cpu usage for vm process)
-- In CPU monitoring of different VMs, we will not be able to directly monitor the work done during copying from memory to buffers (work done during IO)
-    - This work is done by HOST
-    - We will assume that no other work is done on host
-    - Then we will calculate total IO (Input/Output + Network packets) used in each VM and calculate the total amount of CPU usage in VM as percentage of HOST CPU usage
-    - Ignoring Input ourput right now
+## Demo
+ 
+- [Load Balancing](https://youtu.be/suaSnnCDWnY)
+- [Live Migration](https://www.youtube.com/watch?v=ZSCNOWrHCPg): [Codebase](https://github.com/RamneekSingh24/live-migration-rust-vmm)
 
-## Memory Monitoring (Vishal + Saurav)
-### Memory Monitoring of VMs
-- Total memory for this VM. Done
-- Also check total memory usage inside VM
+## Dashboard
 
-### Memory Monitoring of Host
-- Done
-- Total swapped memory (Try to keep this as less as possible) -> Try to do it
+<img width="658" alt="image" src="https://user-images.githubusercontent.com/74413910/203926626-bdd2f63f-b1ab-4aae-afff-2c03d7b40aff.png">
 
-## Network Monitoring (Amar + Rishi)
-- Monitor the tap device (Virtual NIC) in VMM Reference
+<img width="656" alt="image" src="https://user-images.githubusercontent.com/74413910/203926662-474ca024-b6e8-46c4-9c16-83769d011cb1.png">
 
-
-## Basic frontend
-- Make a simple frontend to display histogram & timeseries for each vm and each host.  
-
-## Load Balancing
-- Provision VM (choose where to launch a new VM)
-- Detect hotspot
-- Choose the suitable VM to migrate and to which host, in case of hotspot. 
-
-## Redis Data Sturcture
-- host_id_to_ip -> HashMap -> Host ID (int) to IP (str)
-- host_config:host_id -> HashMap 
-  - 'mem': Integer
-    - Physical Memory of Server
-  - 'cpu': Integer
-    - CPU Cores
-  - 'net': Integer
-    - Bandwidth
-- vms_in_host:{host_id} -> Set
-  - ALl the vm ids
-- vm_configs:{vm_id} -> HashMap
-  - 'mem': Integer
-  - 'cpu': Integer
-  - 'disk': String (Network Disk Info)
-  - 'image_path': Integer
-  - 'host_id': Integer
-    - In which host does this VM exists
-  - 'pid': Integer
-    - Process ID
-  - 'tap_device': String
-  - 'rpc_port': Integer
-
-
-## Running Monitoring/server.py
-PYTHONPATH=./ python ./Monitoring/server.py
-
-
+<img width="668" alt="image" src="https://user-images.githubusercontent.com/74413910/203926703-2e34a129-341e-4082-8484-82448d61eecb.png">
